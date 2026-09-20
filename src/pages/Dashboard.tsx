@@ -43,13 +43,13 @@ export function Dashboard() {
       <Pulse className="opacity-60" />
 
       <div className="relative z-10 max-w-5xl mx-auto flex flex-col gap-6">
-        <header className="flex items-center justify-between animate-fade-up">
+        <header className="flex items-center justify-between animate-slide-right">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-red/15 border border-red/30 flex items-center justify-center animate-float">
+            <div className="w-10 h-10 rounded-xl bg-red/15 border-2 border-red/30 flex items-center justify-center animate-float animate-siren-swap">
               <Siren size={18} className="text-red-light" />
             </div>
             <div>
-              <h1 className="font-display font-black text-lg text-white leading-tight">EMS Dashboard</h1>
+              <h1 className="font-display font-black text-lg text-neon-red leading-tight">EMS Dashboard</h1>
               <p className="text-white/40 text-xs">{tabs.find((t) => t.key === tab)?.label}</p>
             </div>
           </div>
@@ -58,7 +58,7 @@ export function Dashboard() {
           </Button>
         </header>
 
-        <Card className={cn('p-4 flex items-center gap-3 animate-fade-up', onDuty && 'animate-card-glow border-green/30')}>
+        <Card className={cn('p-4 flex items-center gap-3 animate-slide-left', onDuty && 'animate-card-glow border-green/30')}>
           <div className="relative">
             {staff.avatar_url ? (
               <img
@@ -77,18 +77,19 @@ export function Dashboard() {
           </div>
         </Card>
 
-        <div className="flex flex-wrap gap-2 animate-fade-up">
-          {tabs.map((t) => (
+        <div className="flex flex-wrap gap-2">
+          {tabs.map((t, i) => (
             <button
               key={t.key}
               type="button"
               onClick={() => setTab(t.key)}
               className={cn(
-                'px-4 py-2 rounded-full text-xs font-bold uppercase tracking-[1px] border cursor-pointer transition-all duration-300',
+                'stagger-row px-4 py-2 rounded-full text-xs font-bold uppercase tracking-[1px] border cursor-pointer transition-all duration-300',
                 tab === t.key
-                  ? 'bg-red/15 border-red/40 text-white scale-105 shadow-[0_4px_16px_rgba(225,29,46,0.25)]'
+                  ? 'neon-ring bg-red/15 text-neon-red scale-105'
                   : 'bg-white/5 border-white/10 text-white/50 hover:text-white/80 hover:border-white/25 hover:-translate-y-0.5',
               )}
+              style={{ animationDelay: `${i * 60}ms` }}
             >
               {t.label}
             </button>

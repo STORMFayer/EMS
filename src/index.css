@@ -115,11 +115,46 @@ body {
 }
 .hover-lift:hover {
   transform: translateY(-3px);
-  border-color: rgba(225,29,46,0.35);
-  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  border-color: rgba(225,29,46,0.55);
+  box-shadow: 0 0 18px rgba(225,29,46,.3), 0 10px 30px rgba(0,0,0,.35);
 }
 
-.stagger-row { animation: fade-in-up .45s cubic-bezier(.22,.61,.36,1) both; }
+/* List rows slide in from the side instead of just fading up. */
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.stagger-row { animation: slide-in-left .5s cubic-bezier(.22,.61,.36,1) both; }
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.animate-slide-right { animation: slide-in-right .5s cubic-bezier(.22,.61,.36,1) both; }
+.animate-slide-left { animation: slide-in-left .5s cubic-bezier(.22,.61,.36,1) both; }
+
+/* Neon text: layered glow instead of a flat drop-shadow. */
+.text-neon-red {
+  color: #fff;
+  text-shadow: 0 0 6px rgba(255,85,102,.85), 0 0 16px rgba(225,29,46,.65), 0 0 34px rgba(225,29,46,.4);
+}
+.text-neon-cyan {
+  text-shadow: 0 0 6px rgba(34,211,238,.85), 0 0 16px rgba(34,211,238,.55);
+}
+
+/* Neon border: a crisp bright edge plus soft bloom, like a lit tube sign. */
+.neon-ring {
+  border-color: rgba(255,85,102,.8) !important;
+  box-shadow: 0 0 8px rgba(225,29,46,.7), 0 0 22px rgba(225,29,46,.4), inset 0 0 14px rgba(225,29,46,.12);
+}
+
+/* Ambulance light bar: alternates red / cyan like a real siren. */
+@keyframes siren-swap {
+  0%, 45%  { box-shadow: 0 0 10px 2px rgba(225,29,46,.65), 0 0 26px 4px rgba(225,29,46,.3); border-color: rgba(255,85,102,.75); }
+  50%, 95% { box-shadow: 0 0 10px 2px rgba(34,211,238,.65), 0 0 26px 4px rgba(34,211,238,.3); border-color: rgba(34,211,238,.75); }
+  100%     { box-shadow: 0 0 10px 2px rgba(225,29,46,.65), 0 0 26px 4px rgba(225,29,46,.3); border-color: rgba(255,85,102,.75); }
+}
+.animate-siren-swap { animation: siren-swap 1.6s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }

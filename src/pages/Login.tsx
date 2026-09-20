@@ -40,10 +40,10 @@ export function Login() {
       <Pulse />
 
       <div className="relative z-10 flex flex-col items-center mb-8 animate-fade-up">
-        <div className="w-16 h-16 rounded-2xl bg-red/15 border border-red/30 flex items-center justify-center mb-4 animate-float animate-card-glow">
+        <div className="w-16 h-16 rounded-2xl bg-red/15 border-2 border-red/30 flex items-center justify-center mb-4 animate-float animate-siren-swap">
           <Siren size={28} className="text-red-light" />
         </div>
-        <h1 className="font-display font-black text-2xl text-white">EMS Dashboard</h1>
+        <h1 className="font-display font-black text-2xl text-neon-red">EMS Dashboard</h1>
         <p className="text-white/40 text-sm mt-1">Connexion réservée au personnel médical</p>
       </div>
 
