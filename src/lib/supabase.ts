@@ -60,6 +60,12 @@ export const STATUS_LABELS: Record<DutyStatus, string> = {
 
 export const DISCORD_INVITE_URL = 'https://discord.gg/BqPNg7Ngt'
 
+export const DIRECTION_ROLES: StaffRole[] = ['directeur', 'directeur_adjoint', 'directeur_centre']
+
+export function isDirection(role: StaffRole | undefined | null) {
+  return !!role && DIRECTION_ROLES.includes(role)
+}
+
 export interface Staff {
   id: string
   discord_id: string | null
@@ -68,5 +74,106 @@ export interface Staff {
   role: StaffRole
   status: DutyStatus
   shift_started_at: string | null
+  unit_id: string | null
   created_at: string
+}
+
+export interface Unit {
+  id: string
+  name: string
+  sector: string | null
+  status: DutyStatus
+  created_at: string
+}
+
+export interface Shift {
+  id: number
+  staff_id: string
+  unit_name: string | null
+  sector: string | null
+  status_label: string | null
+  started_at: string
+  ended_at: string | null
+  created_at: string
+}
+
+export type AbsenceStatus = 'en_attente' | 'validee' | 'refusee'
+
+export interface Absence {
+  id: number
+  staff_id: string
+  start_date: string
+  end_date: string
+  motif: string | null
+  status: AbsenceStatus
+  created_at: string
+}
+
+export const ABSENCE_STATUS_LABELS: Record<AbsenceStatus, string> = {
+  en_attente: 'En attente',
+  validee: 'Validée',
+  refusee: 'Refusée',
+}
+
+export type StockItemKey =
+  | 'medicaments'
+  | 'methadone'
+  | 'trousse_de_soin'
+  | 'pince_a_epiler'
+  | 'creme_brulures'
+  | 'poche_de_glace'
+  | 'sedatif'
+  | 'kit_de_suture'
+  | 'bandage'
+  | 'vicodin_5mg'
+  | 'morphine_30mg'
+  | 'percocet_5mg'
+  | 'percocet_10mg'
+  | 'percocet_30mg'
+  | 'defibrillateur'
+  | 'morceaux_de_tissus'
+  | 'produit_chimique'
+  | 'kit_de_nettoyage'
+  | 'kit_de_reparation'
+
+export const STOCK_ITEM_LABELS: Record<StockItemKey, string> = {
+  medicaments: 'Medicaments',
+  methadone: 'Méthadone',
+  trousse_de_soin: 'Trousse de soin',
+  pince_a_epiler: 'Pince à épiler',
+  creme_brulures: 'Crème pour brûlures',
+  poche_de_glace: 'Poche de glace',
+  sedatif: 'Sédatif',
+  kit_de_suture: 'Kit de suture',
+  bandage: 'Bandage',
+  vicodin_5mg: 'Vicodin 5Mg',
+  morphine_30mg: 'Morphine 30mg',
+  percocet_5mg: 'Percocet 5mg',
+  percocet_10mg: 'Percocet 10mg',
+  percocet_30mg: 'Percocet 30mg',
+  defibrillateur: 'Défibrilateur',
+  morceaux_de_tissus: 'Morceaux de tissus',
+  produit_chimique: 'Produit Chimique',
+  kit_de_nettoyage: 'Kit de nettoyage',
+  kit_de_reparation: 'Kit de réparation',
+}
+
+export const RECOLTE_ITEMS: StockItemKey[] = ['morceaux_de_tissus', 'produit_chimique']
+export const FABRICATION_ITEMS: StockItemKey[] = ['bandage', 'medicaments', 'methadone', 'trousse_de_soin']
+
+export type StockMovementSource = 'recolte' | 'fabrication' | 'registre_depot' | 'registre_retrait'
+
+export interface StockMovement {
+  id: number
+  staff_id: string
+  item_key: StockItemKey
+  delta: number
+  source: StockMovementSource
+  lieu: string
+  created_at: string
+}
+
+export interface StockRow {
+  item_key: StockItemKey
+  quantity: number
 }
