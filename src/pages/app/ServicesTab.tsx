@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Play, Square, RefreshCw } from 'lucide-react'
+import { Play, Pause, Square, RefreshCw } from 'lucide-react'
 import { useAuth } from '@/auth/AuthContext'
 import { supabase, ROLE_LABELS, STATUS_LABELS, type Staff, type Unit, type DutyStatus } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
@@ -35,8 +35,6 @@ export function ServicesTab() {
 
   const [newUnitName, setNewUnitName] = useState('')
   const [joinUnitId, setJoinUnitId] = useState('')
-  const [sector, setSector] = useState('')
-  const [statut, setStatut] = useState<DutyStatus>('en_service')
 
   const fetchAll = useCallback(async () => {
     const [{ data: staffData }, { data: unitData }] = await Promise.all([
@@ -97,7 +95,7 @@ export function ServicesTab() {
       if (newUnitName.trim()) {
         const { data, error: unitErr } = await supabase
           .from('units')
-          .insert({ name: newUnitName.trim(), sector: sector.trim() || null, status: statut })
+          .insert({ name: newUnitName.trim(), status: 'en_service' })
           .select()
           .single()
         if (unitErr || !data) throw new Error(unitErr?.message ?? "Création d'unité impossible")
@@ -107,7 +105,7 @@ export function ServicesTab() {
       } else if (joinUnitId) {
         unitId = joinUnitId
         unitName = unitsById.get(joinUnitId)?.name ?? null
-        unitSector = sector.trim() || unitsById.get(joinUnitId)?.sector || null
+        unitSector = unitsById.get(joinUnitId)?.sector ?? null
       }
 
       if (!unitId) throw new Error("Choisis un nom d'unité ou une unité existante.")
@@ -117,7 +115,7 @@ export function ServicesTab() {
 
       const { error: staffErr } = await supabase
         .from('staff')
-        .update({ unit_id: unitId, status: statut, shift_started_at: startedAt })
+        .update({ unit_id: unitId, status: 'en_service', shift_started_at: startedAt })
         .eq('id', staff.id)
       if (staffErr) throw new Error(staffErr.message)
 
@@ -126,13 +124,13 @@ export function ServicesTab() {
           staff_id: staff.id,
           unit_name: unitName,
           sector: unitSector,
-          status_label: statut,
+          status_label: 'en_service',
           started_at: startedAt,
         })
       } else {
         await supabase
           .from('shifts')
-          .update({ status_label: statut, unit_name: unitName, sector: unitSector })
+          .update({ status_label: 'en_service', unit_name: unitName, sector: unitSector })
           .eq('staff_id', staff.id)
           .is('ended_at', null)
       }
@@ -142,6 +140,19 @@ export function ServicesTab() {
       await Promise.all([refreshStaff(), fetchAll()])
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handlePause() {
+    if (!staff || submitting) return
+    setSubmitting(true)
+    setError(null)
+    try {
+      await supabase.from('staff').update({ status: 'en_pause' }).eq('id', staff.id)
+      await supabase.from('shifts').update({ status_label: 'en_pause' }).eq('staff_id', staff.id).is('ended_at', null)
+      await Promise.all([refreshStaff(), fetchAll()])
     } finally {
       setSubmitting(false)
     }
@@ -200,24 +211,22 @@ export function ServicesTab() {
             </Select>
           </Field>
         </div>
-        <div className="grid sm:grid-cols-2 gap-4 mb-4">
-          <Field label="Secteur">
-            <Input placeholder="Ex: Sandy Shores" value={sector} onChange={(e) => setSector(e.target.value)} />
-          </Field>
-          <Field label="Statut">
-            <Select value={statut} onChange={(e) => setStatut(e.target.value as DutyStatus)}>
-              <option value="en_service">EN SERVICE</option>
-              <option value="en_pause">EN PAUSE</option>
-            </Select>
-          </Field>
-        </div>
         <div className="flex flex-col sm:flex-row gap-2">
-          <Button variant="green" disabled={submitting} onClick={handlePrendreService} className="flex-1">
-            <Play size={14} /> Prendre service
-          </Button>
-          <Button variant="red" disabled={submitting || staff.status === 'hors_service'} onClick={handleFin} className="flex-1">
-            <Square size={14} /> Fin (si actif)
-          </Button>
+          {staff.status !== 'en_service' && (
+            <Button variant="green" disabled={submitting} onClick={handlePrendreService} className="flex-1">
+              <Play size={14} /> Prendre service
+            </Button>
+          )}
+          {staff.status === 'en_service' && (
+            <Button variant="ghost" disabled={submitting} onClick={handlePause} className="flex-1">
+              <Pause size={14} /> En pause
+            </Button>
+          )}
+          {staff.status !== 'hors_service' && (
+            <Button variant="red" disabled={submitting} onClick={handleFin} className="flex-1">
+              <Square size={14} /> Fin de service
+            </Button>
+          )}
         </div>
       </Card>
 

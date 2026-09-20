@@ -13,6 +13,14 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
+
+/* Native <select> popups ignore most CSS, but background/color on <option>
+   is respected — without this the dropdown list renders with the OS's
+   light theme and is unreadable against the rest of the dark UI. */
+select option {
+  background-color: #101722;
+  color: #ffffff;
+}
 html { scroll-behavior: smooth; }
 html, body, #root { min-height: 100%; margin: 0; padding: 0; }
 body {
