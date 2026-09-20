@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Play, Pause, Square, RefreshCw } from 'lucide-react'
 import { useAuth } from '@/auth/AuthContext'
-import { supabase, ROLE_LABELS, STATUS_LABELS, type Staff, type Unit, type DutyStatus } from '@/lib/supabase'
+import { supabase, ROLE_LABELS, STATUS_LABELS, CODE_LABELS, type Staff, type Unit, type DutyStatus, type EmergencyCode } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -12,6 +12,15 @@ import { AnimatedNumber } from '@/components/ui/AnimatedNumber'
 import { AnimatedList, AnimatedListItem } from '@/components/ui/AnimatedList'
 import { cn } from '@/lib/utils'
 
+const CODE_KEYS: EmergencyCode[] = ['1', '2', '3']
+
+function teamLabel(count: number) {
+  if (count <= 1) return 'Solo'
+  if (count === 2) return 'Duo'
+  if (count === 3) return 'Trio'
+  return `Équipe (${count})`
+}
+
 const STATUS_BADGE: Record<DutyStatus, 'green' | 'amber' | 'gray'> = {
   en_service: 'green',
   en_pause: 'amber',
@@ -19,6 +28,10 @@ const STATUS_BADGE: Record<DutyStatus, 'green' | 'amber' | 'gray'> = {
 }
 
 const STATUS_ORDER: Record<DutyStatus, number> = { en_service: 0, en_pause: 1, hors_service: 2 }
+
+function formatTime(iso: string) {
+  return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+}
 
 function formatDuration(startIso: string, now: number) {
   const minutes = Math.max(0, Math.floor((now - new Date(startIso).getTime()) / 60000))
@@ -36,6 +49,7 @@ export function ServicesTab() {
   const [error, setError] = useState<string | null>(null)
 
   const [newUnitName, setNewUnitName] = useState('')
+  const [newUnitLieu, setNewUnitLieu] = useState('')
   const [joinUnitId, setJoinUnitId] = useState('')
 
   const fetchAll = useCallback(async () => {
@@ -97,7 +111,7 @@ export function ServicesTab() {
       if (newUnitName.trim()) {
         const { data, error: unitErr } = await supabase
           .from('units')
-          .insert({ name: newUnitName.trim(), status: 'en_service' })
+          .insert({ name: newUnitName.trim(), status: 'en_service', sector: newUnitLieu.trim() || null })
           .select()
           .single()
         if (unitErr || !data) throw new Error(unitErr?.message ?? "Création d'unité impossible")
@@ -138,10 +152,23 @@ export function ServicesTab() {
       }
 
       setNewUnitName('')
+      setNewUnitLieu('')
       setJoinUnitId('')
       await Promise.all([refreshStaff(), fetchAll()])
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleSetCode(code: EmergencyCode) {
+    if (!staff?.unit_id || submitting) return
+    setSubmitting(true)
+    try {
+      await supabase.from('units').update({ code }).eq('id', staff.unit_id)
+      await supabase.from('shifts').update({ code }).eq('staff_id', staff.id).is('ended_at', null)
+      await fetchAll()
     } finally {
       setSubmitting(false)
     }
@@ -213,6 +240,33 @@ export function ServicesTab() {
             </Select>
           </Field>
         </div>
+        {newUnitName.trim() && (
+          <div className="mb-4">
+            <Field label="Lieu">
+              <Input placeholder="ex: Pillbox, Sandy Shores..." value={newUnitLieu} onChange={(e) => setNewUnitLieu(e.target.value)} />
+            </Field>
+          </div>
+        )}
+        {staff.unit_id && staff.status === 'en_service' && (
+          <div className="mb-4">
+            <p className="text-xs uppercase tracking-[1.5px] text-white/40 font-semibold mb-1.5">Code d'urgence</p>
+            <div className="flex gap-2">
+              {CODE_KEYS.map((code) => (
+                <Button
+                  key={code}
+                  type="button"
+                  size="sm"
+                  variant={unitsById.get(staff.unit_id!)?.code === code ? 'red' : 'ghost'}
+                  disabled={submitting}
+                  onClick={() => handleSetCode(code)}
+                  className="flex-1"
+                >
+                  {CODE_LABELS[code]}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="flex flex-col sm:flex-row gap-2">
           {staff.status !== 'en_service' && (
             <Button variant="green" disabled={submitting} onClick={handlePrendreService} className="flex-1">
@@ -241,19 +295,28 @@ export function ServicesTab() {
       <Card className="p-5" delay={0.1}>
         <h2 className="text-white/60 text-xs uppercase tracking-[2px] font-bold mb-4">Services actifs</h2>
         <AnimatedList className="flex flex-col gap-2">
-          {activeUnits.map((unit) => (
-            <AnimatedListItem key={unit.id} className="rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5">
-              <div className="flex items-center justify-between mb-1">
-                <p className="text-white text-sm font-semibold">{unit.name}</p>
-                <Badge variant={STATUS_BADGE[unit.status]}>
-                  {unit.status === 'en_service' && <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-status-pulse" />}
-                  {STATUS_LABELS[unit.status]}
-                </Badge>
-              </div>
-              {unit.sector && <p className="text-white/40 text-xs mb-1">Secteur : {unit.sector}</p>}
-              <p className="text-white/40 text-xs">{roster.filter((s) => s.unit_id === unit.id).map((s) => s.full_name).join(', ')}</p>
-            </AnimatedListItem>
-          ))}
+          {activeUnits.map((unit) => {
+            const members = roster.filter((s) => s.unit_id === unit.id)
+            return (
+              <AnimatedListItem key={unit.id} className="rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5">
+                <div className="flex items-center justify-between mb-1 gap-2 flex-wrap">
+                  <p className="text-white text-sm font-semibold">{unit.name}</p>
+                  <div className="flex items-center gap-1.5">
+                    {unit.code && <Badge variant="red">{CODE_LABELS[unit.code]}</Badge>}
+                    <Badge variant={STATUS_BADGE[unit.status]}>
+                      {unit.status === 'en_service' && <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-status-pulse" />}
+                      {STATUS_LABELS[unit.status]}
+                    </Badge>
+                  </div>
+                </div>
+                <p className="text-white/40 text-xs mb-1">
+                  {unit.sector ? `Lieu : ${unit.sector} · ` : ''}
+                  Début : {formatTime(unit.created_at)} · {teamLabel(members.length)}
+                </p>
+                <p className="text-white/40 text-xs">{members.map((s) => s.full_name).join(', ')}</p>
+              </AnimatedListItem>
+            )
+          })}
           {activeUnits.length === 0 && <p className="text-white/30 text-sm text-center py-4">Aucun service actif.</p>}
         </AnimatedList>
       </Card>

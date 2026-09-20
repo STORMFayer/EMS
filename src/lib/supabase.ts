@@ -78,10 +78,19 @@ export interface Staff {
   created_at: string
 }
 
+export type EmergencyCode = '1' | '2' | '3'
+
+export const CODE_LABELS: Record<EmergencyCode, string> = {
+  '1': 'Code 1 · Routine',
+  '2': 'Code 2 · Urgent',
+  '3': 'Code 3 · Feux & sirènes',
+}
+
 export interface Unit {
   id: string
   name: string
   sector: string | null
+  code: EmergencyCode | null
   status: DutyStatus
   created_at: string
 }
@@ -91,6 +100,7 @@ export interface Shift {
   staff_id: string
   unit_name: string | null
   sector: string | null
+  code: EmergencyCode | null
   status_label: string | null
   started_at: string
   ended_at: string | null
@@ -158,10 +168,7 @@ export const STOCK_ITEM_LABELS: Record<StockItemKey, string> = {
   kit_de_reparation: 'Kit de réparation',
 }
 
-export const RECOLTE_ITEMS: StockItemKey[] = ['morceaux_de_tissus', 'produit_chimique']
-export const FABRICATION_ITEMS: StockItemKey[] = ['bandage', 'medicaments', 'methadone', 'trousse_de_soin']
-
-export type StockMovementSource = 'recolte' | 'fabrication' | 'registre_depot' | 'registre_retrait'
+export type StockMovementSource = 'registre_depot' | 'registre_retrait'
 
 export interface StockMovement {
   id: number
@@ -176,4 +183,39 @@ export interface StockMovement {
 export interface StockRow {
   item_key: StockItemKey
   quantity: number
+}
+
+export interface PrestationType {
+  id: string
+  label: string
+  tarif: number
+  created_at: string
+}
+
+export interface Prestation {
+  id: number
+  staff_id: string
+  prestation_type_id: string
+  montant: number
+  is_public: boolean
+  details: string | null
+  created_at: string
+}
+
+export type AppointmentType = 'cas' | 'cappa' | 'visite_medicale' | 'autre'
+
+export const APPOINTMENT_TYPE_LABELS: Record<AppointmentType, string> = {
+  cas: 'CAS',
+  cappa: 'CAPPA',
+  visite_medicale: 'Visite médicale',
+  autre: 'Autre',
+}
+
+export interface Appointment {
+  id: number
+  staff_id: string
+  type: AppointmentType
+  title: string | null
+  scheduled_at: string
+  created_at: string
 }

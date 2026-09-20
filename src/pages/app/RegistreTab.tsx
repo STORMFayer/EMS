@@ -8,13 +8,14 @@ import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber'
 import { AnimatedList, AnimatedListItem } from '@/components/ui/AnimatedList'
+import { cn } from '@/lib/utils'
 
 const ITEM_KEYS = Object.keys(STOCK_ITEM_LABELS) as StockItemKey[]
 
 export function RegistreTab() {
   const { staff } = useAuth()
   const [action, setAction] = useState<'registre_depot' | 'registre_retrait'>('registre_depot')
-  const [objet, setObjet] = useState<StockItemKey | ''>('')
+  const [selected, setSelected] = useState<Set<StockItemKey>>(new Set())
   const [lieu, setLieu] = useState('Morgue')
   const [quantite, setQuantite] = useState(1)
   const [stock, setStock] = useState<StockRow[]>([])
@@ -38,22 +39,36 @@ export function RegistreTab() {
     }
   }, [fetchStock])
 
+  function toggleItem(key: StockItemKey) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
+
   async function handleSubmit() {
-    if (!staff || !objet || submitting) return
+    if (!staff || selected.size === 0 || submitting) return
     setSubmitting(true)
     setError(null)
     setSuccess(false)
     const delta = action === 'registre_depot' ? quantite : -quantite
-    const { error: err } = await supabase
-      .from('stock_movements')
-      .insert({ staff_id: staff.id, item_key: objet, delta, source: action, lieu: lieu.trim() || 'Morgue' })
+    const rows = [...selected].map((item_key) => ({
+      staff_id: staff.id,
+      item_key,
+      delta,
+      source: action,
+      lieu: lieu.trim() || 'Morgue',
+    }))
+    const { error: err } = await supabase.from('stock_movements').insert(rows)
     setSubmitting(false)
     if (err) {
-      setError(err.message.includes('Stock insuffisant') ? 'Stock insuffisant.' : err.message)
+      setError(err.message.includes('Stock insuffisant') ? 'Stock insuffisant pour un des objets sélectionnés.' : err.message)
       return
     }
     setSuccess(true)
-    setObjet('')
+    setSelected(new Set())
     setQuantite(1)
     await fetchStock()
   }
@@ -71,27 +86,41 @@ export function RegistreTab() {
               <option value="registre_retrait">Retrait</option>
             </Select>
           </Field>
-          <Field label="Objet (Stock)">
-            <Select value={objet} onChange={(e) => setObjet(e.target.value as StockItemKey)}>
-              <option value="">Choisir...</option>
-              {ITEM_KEYS.map((key) => (
-                <option key={key} value={key}>
-                  {STOCK_ITEM_LABELS[key]}
-                </option>
-              ))}
-            </Select>
-          </Field>
-        </div>
-        <div className="grid sm:grid-cols-2 gap-4 mb-4">
           <Field label="Lieu">
             <Input value={lieu} onChange={(e) => setLieu(e.target.value)} />
           </Field>
-          <Field label="Quantité">
+        </div>
+        <div className="mb-4">
+          <Field label="Quantité (par objet)">
             <Input type="number" min={1} value={quantite} onChange={(e) => setQuantite(Number(e.target.value))} />
           </Field>
         </div>
-        <Button variant="red" className="w-full" disabled={submitting || !objet} onClick={handleSubmit}>
-          Valider
+
+        <h3 className="text-white/40 text-xs uppercase tracking-[1.5px] font-semibold mb-2">Objets (sélection multiple)</h3>
+        <AnimatedList className="grid sm:grid-cols-2 gap-2 mb-4">
+          {ITEM_KEYS.map((key) => {
+            const active = selected.has(key)
+            return (
+              <AnimatedListItem key={key}>
+                <button
+                  type="button"
+                  onClick={() => toggleItem(key)}
+                  className={cn(
+                    'w-full text-left rounded-lg border px-3 py-2 text-sm transition-colors cursor-pointer',
+                    active
+                      ? 'border-red/50 bg-red/10 text-neon-red font-semibold'
+                      : 'border-white/8 bg-white/[0.02] text-white/70 hover:bg-white/[0.05] hover:text-white',
+                  )}
+                >
+                  {STOCK_ITEM_LABELS[key]}
+                </button>
+              </AnimatedListItem>
+            )
+          })}
+        </AnimatedList>
+
+        <Button variant="red" className="w-full" disabled={submitting || selected.size === 0} onClick={handleSubmit}>
+          Valider {selected.size > 0 ? `(${selected.size} objet${selected.size > 1 ? 's' : ''})` : ''}
         </Button>
       </Card>
 

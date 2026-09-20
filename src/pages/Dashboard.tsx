@@ -9,18 +9,22 @@ import { Pulse } from '@/components/Pulse'
 import { cn } from '@/lib/utils'
 import { ServicesTab } from './app/ServicesTab'
 import { AbsenceTab } from './app/AbsenceTab'
-import { RecolteFabTab } from './app/RecolteFabTab'
 import { RegistreTab } from './app/RegistreTab'
+import { PrestationsTab } from './app/PrestationsTab'
+import { AgendaTab } from './app/AgendaTab'
+import { DossierMedicalTab } from './app/DossierMedicalTab'
 import { HistoriqueTab } from './app/HistoriqueTab'
 import { GestionTab } from './app/GestionTab'
 
-type TabKey = 'services' | 'absence' | 'recolte_fab' | 'registre' | 'historique' | 'gestion'
+type TabKey = 'services' | 'absence' | 'registre' | 'prestations' | 'agenda' | 'dossier_medical' | 'historique' | 'gestion'
 
 const BASE_TABS: { key: TabKey; label: string }[] = [
   { key: 'services', label: 'Services' },
   { key: 'absence', label: 'Absence' },
-  { key: 'recolte_fab', label: 'Récolte/Fab' },
   { key: 'registre', label: 'Registre' },
+  { key: 'prestations', label: 'Prestations' },
+  { key: 'agenda', label: 'Agenda' },
+  { key: 'dossier_medical', label: 'Dossier médical' },
   { key: 'historique', label: 'Historique' },
 ]
 
@@ -139,8 +143,10 @@ export function Dashboard() {
           >
             {tab === 'services' && <ServicesTab />}
             {tab === 'absence' && <AbsenceTab />}
-            {tab === 'recolte_fab' && <RecolteFabTab />}
             {tab === 'registre' && <RegistreTab />}
+            {tab === 'prestations' && <PrestationsTab />}
+            {tab === 'agenda' && <AgendaTab />}
+            {tab === 'dossier_medical' && <DossierMedicalTab />}
             {tab === 'historique' && <HistoriqueTab />}
             {tab === 'gestion' && isDirection(staff.role) && <GestionTab />}
           </motion.div>

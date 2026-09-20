@@ -9,6 +9,7 @@ import {
   type Absence,
   type StockRow,
   type Unit,
+  type PrestationType,
 } from '@/lib/supabase'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -26,19 +27,26 @@ export function GestionTab() {
   const [absences, setAbsences] = useState<Absence[]>([])
   const [stock, setStock] = useState<StockRow[]>([])
   const [stockEdits, setStockEdits] = useState<Record<string, number>>({})
+  const [prestationTypes, setPrestationTypes] = useState<PrestationType[]>([])
+  const [tarifEdits, setTarifEdits] = useState<Record<string, number>>({})
+  const [newTypeId, setNewTypeId] = useState('')
+  const [newTypeLabel, setNewTypeLabel] = useState('')
+  const [newTypeTarif, setNewTypeTarif] = useState(0)
   const [searchStaffId, setSearchStaffId] = useState('')
 
   const fetchAll = useCallback(async () => {
-    const [{ data: s }, { data: u }, { data: a }, { data: st }] = await Promise.all([
+    const [{ data: s }, { data: u }, { data: a }, { data: st }, { data: pt }] = await Promise.all([
       supabase.from('staff').select('*').order('full_name'),
       supabase.from('units').select('*'),
       supabase.from('absences').select('*').order('created_at', { ascending: false }),
       supabase.from('stock').select('*').order('item_key'),
+      supabase.from('prestation_types').select('*').order('label'),
     ])
     if (s) setStaffList(s)
     if (u) setUnits(u)
     if (a) setAbsences(a)
     if (st) setStock(st)
+    if (pt) setPrestationTypes(pt)
   }, [])
 
   useEffect(() => {
@@ -70,6 +78,27 @@ export function GestionTab() {
       delete next[itemKey]
       return next
     })
+    await fetchAll()
+  }
+
+  async function saveTarif(id: string) {
+    const value = tarifEdits[id]
+    if (value === undefined) return
+    await supabase.from('prestation_types').update({ tarif: value }).eq('id', id)
+    setTarifEdits((prev) => {
+      const next = { ...prev }
+      delete next[id]
+      return next
+    })
+    await fetchAll()
+  }
+
+  async function addPrestationType() {
+    if (!newTypeId.trim() || !newTypeLabel.trim()) return
+    await supabase.from('prestation_types').insert({ id: newTypeId.trim(), label: newTypeLabel.trim(), tarif: newTypeTarif })
+    setNewTypeId('')
+    setNewTypeLabel('')
+    setNewTypeTarif(0)
     await fetchAll()
   }
 
@@ -176,6 +205,34 @@ export function GestionTab() {
       </Card>
 
       <Card className="p-5" delay={0.24}>
+        <h2 className="text-white font-bold text-sm mb-4">Tarifs prestations</h2>
+        <AnimatedList className="flex flex-col gap-2 mb-4">
+          {prestationTypes.map((t) => (
+            <AnimatedListItem key={t.id} className="flex items-center gap-2 rounded-lg border border-white/8 bg-white/[0.02] px-3 py-2">
+              <span className="text-white/70 text-xs flex-1">{t.label}</span>
+              <Input
+                type="number"
+                className="w-24"
+                value={tarifEdits[t.id] ?? t.tarif}
+                onChange={(e) => setTarifEdits((prev) => ({ ...prev, [t.id]: Number(e.target.value) }))}
+              />
+              <Button size="sm" variant="ghost" onClick={() => saveTarif(t.id)}>
+                OK
+              </Button>
+            </AnimatedListItem>
+          ))}
+        </AnimatedList>
+        <div className="grid sm:grid-cols-3 gap-2">
+          <Input placeholder="id (ex: soins)" value={newTypeId} onChange={(e) => setNewTypeId(e.target.value)} />
+          <Input placeholder="Libellé" value={newTypeLabel} onChange={(e) => setNewTypeLabel(e.target.value)} />
+          <div className="flex gap-2">
+            <Input type="number" placeholder="Tarif" value={newTypeTarif} onChange={(e) => setNewTypeTarif(Number(e.target.value))} />
+            <Button size="sm" onClick={addPrestationType}>Ajouter</Button>
+          </div>
+        </div>
+      </Card>
+
+      <Card className="p-5" delay={0.28}>
         <h2 className="text-white font-bold text-sm mb-4">Historique par utilisateur</h2>
         <Select className="mb-4" value={searchStaffId} onChange={(e) => setSearchStaffId(e.target.value)}>
           <option value="">Choisir un agent...</option>

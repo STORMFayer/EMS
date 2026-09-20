@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { useAuth } from '@/auth/AuthContext'
-import { supabase, STOCK_ITEM_LABELS, type Shift, type StockMovement } from '@/lib/supabase'
+import { supabase, STOCK_ITEM_LABELS, type Shift, type StockMovement, type Prestation, type PrestationType } from '@/lib/supabase'
 import { Card } from '@/components/ui/Card'
 import { AnimatedList, AnimatedListItem } from '@/components/ui/AnimatedList'
 
@@ -17,6 +17,8 @@ export function HistoriqueTab({ staffId }: { staffId?: string }) {
   const targetId = staffId ?? staff?.id
   const [shifts, setShifts] = useState<Shift[]>([])
   const [movements, setMovements] = useState<StockMovement[]>([])
+  const [prestations, setPrestations] = useState<Prestation[]>([])
+  const [prestationTypes, setPrestationTypes] = useState<PrestationType[]>([])
 
   useEffect(() => {
     if (!targetId) return
@@ -38,13 +40,27 @@ export function HistoriqueTab({ staffId }: { staffId?: string }) {
       .then(({ data }) => {
         if (data) setMovements(data)
       })
+    supabase
+      .from('prestations')
+      .select('*')
+      .eq('staff_id', targetId)
+      .order('created_at', { ascending: false })
+      .limit(50)
+      .then(({ data }) => {
+        if (data) setPrestations(data)
+      })
+    supabase
+      .from('prestation_types')
+      .select('*')
+      .then(({ data }) => {
+        if (data) setPrestationTypes(data)
+      })
   }, [targetId])
 
   const enCours = shifts.filter((s) => !s.ended_at)
   const finis = shifts.filter((s) => s.ended_at)
-  const recoltes = movements.filter((m) => m.source === 'recolte')
-  const fabrications = movements.filter((m) => m.source === 'fabrication')
   const registre = movements.filter((m) => m.source === 'registre_depot' || m.source === 'registre_retrait')
+  const prestationLabel = (id: string) => prestationTypes.find((t) => t.id === id)?.label ?? id
 
   return (
     <div className="flex flex-col gap-4">
@@ -66,31 +82,23 @@ export function HistoriqueTab({ staffId }: { staffId?: string }) {
         {finis.length === 0 && <Empty />}
       </HistorySection>
 
-      <HistorySection title="Récoltes" delay={0.1}>
-        {recoltes.map((m) => (
-          <AnimatedListItem key={m.id}>
-            {STOCK_ITEM_LABELS[m.item_key]} | {formatDateTime(m.created_at)} x{m.delta} | {m.lieu}
-          </AnimatedListItem>
-        ))}
-        {recoltes.length === 0 && <Empty />}
-      </HistorySection>
-
-      <HistorySection title="Fabrications" delay={0.15}>
-        {fabrications.map((m) => (
-          <AnimatedListItem key={m.id}>
-            {STOCK_ITEM_LABELS[m.item_key]} | {formatDateTime(m.created_at)} x{m.delta} | {m.lieu}
-          </AnimatedListItem>
-        ))}
-        {fabrications.length === 0 && <Empty />}
-      </HistorySection>
-
-      <HistorySection title="Registre" delay={0.2}>
+      <HistorySection title="Registre" delay={0.1}>
         {registre.map((m) => (
           <AnimatedListItem key={m.id}>
             {formatDateTime(m.created_at)} | {m.delta > 0 ? 'Dépôt' : 'Retrait'} {STOCK_ITEM_LABELS[m.item_key]} x{Math.abs(m.delta)} | {m.lieu}
           </AnimatedListItem>
         ))}
         {registre.length === 0 && <Empty />}
+      </HistorySection>
+
+      <HistorySection title="Prestations" delay={0.15}>
+        {prestations.map((p) => (
+          <AnimatedListItem key={p.id}>
+            {formatDateTime(p.created_at)} | {prestationLabel(p.prestation_type_id)} · {p.montant}$ {p.is_public ? '· Service public' : ''}
+            {p.details ? ` · ${p.details}` : ''}
+          </AnimatedListItem>
+        ))}
+        {prestations.length === 0 && <Empty />}
       </HistorySection>
     </div>
   )
