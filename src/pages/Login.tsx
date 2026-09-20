@@ -5,9 +5,18 @@ import { useAuth } from '@/auth/AuthContext'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Pulse } from '@/components/Pulse'
+import { DISCORD_INVITE_URL } from '@/lib/supabase'
+
+const DENIAL_MESSAGES: Record<string, string> = {
+  not_member: "Tu dois être membre du serveur Discord E.M.S. | LJ Life pour accéder au dashboard.",
+  no_gate_role: "Tu es sur le serveur, mais tu n'as pas encore le rôle E.M.S. Contacte ta hiérarchie.",
+  discord_error: "Discord n'a pas répondu correctement. Réessaie dans un instant.",
+  server_error: "Une erreur est survenue pendant la vérification. Réessaie.",
+  missing_token: "La connexion Discord n'a pas transmis les informations nécessaires. Réessaie.",
+}
 
 export function Login() {
-  const { session, loading, signInWithDiscord } = useAuth()
+  const { session, loading, denialReason, signInWithDiscord } = useAuth()
   const [connecting, setConnecting] = useState(false)
 
   if (!loading && session) return <Navigate to="/dashboard" replace />
@@ -15,6 +24,7 @@ export function Login() {
   async function handleDiscordLogin() {
     setConnecting(true)
     await signInWithDiscord()
+    setConnecting(false)
   }
 
   return (
@@ -52,6 +62,24 @@ export function Login() {
         >
           <DiscordIcon /> {connecting ? 'Redirection...' : 'Se connecter avec Discord'}
         </Button>
+
+        {denialReason && (
+          <div className="w-full rounded-lg bg-red/10 border border-red/25 p-3 flex flex-col gap-2">
+            <p className="text-red-300 text-xs text-center leading-relaxed">
+              {DENIAL_MESSAGES[denialReason] ?? DENIAL_MESSAGES.server_error}
+            </p>
+            {denialReason === 'not_member' && (
+              <a
+                href={DISCORD_INVITE_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="text-cyan text-xs text-center underline underline-offset-2"
+              >
+                Rejoindre le serveur E.M.S. | LJ Life
+              </a>
+            )}
+          </div>
+        )}
       </Card>
     </div>
   )

@@ -2,10 +2,13 @@ import { createContext, useContext, useEffect, useState, useCallback, type React
 import type { Session } from '@supabase/supabase-js'
 import { supabase, type Staff } from '@/lib/supabase'
 
+export type AuthDenialReason = 'not_member' | 'no_gate_role' | 'discord_error' | 'server_error' | 'missing_token'
+
 interface AuthState {
   session: Session | null
   staff: Staff | null
   loading: boolean
+  denialReason: AuthDenialReason | null
   signInWithDiscord: () => Promise<void>
   signOut: () => Promise<void>
   refreshStaff: () => Promise<void>
@@ -15,6 +18,7 @@ const AuthContext = createContext<AuthState>({
   session: null,
   staff: null,
   loading: true,
+  denialReason: null,
   signInWithDiscord: async () => {},
   signOut: async () => {},
   refreshStaff: async () => {},
@@ -31,6 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [staff, setStaff] = useState<Staff | null>(null)
   const [loading, setLoading] = useState(true)
+  const [denialReason, setDenialReason] = useState<AuthDenialReason | null>(null)
 
   const loadStaff = useCallback(async (userId: string) => {
     try {
@@ -41,23 +46,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  // Keeps the Discord username/avatar in sync on every login without touching duty status.
-  const syncStaffFromDiscord = useCallback(async (currentSession: Session) => {
-    const meta = currentSession.user.user_metadata
+  // Confirms the user is in the E.M.S. Discord server and syncs their in-game
+  // rank from their Discord roles. Only possible right after a fresh OAuth
+  // sign-in, since that's the only time Supabase exposes the Discord token.
+  const verifyDiscordMembership = useCallback(async (currentSession: Session) => {
+    const providerToken = currentSession.provider_token
+    if (!providerToken) return true // session restore, not a fresh login — trust the cached rank
+
     try {
-      await withTimeout(
-        supabase.from('staff').upsert(
-          {
-            id: currentSession.user.id,
-            discord_id: meta.provider_id ?? meta.sub ?? null,
-            full_name: meta.full_name ?? meta.name ?? 'Agent',
-            avatar_url: meta.avatar_url ?? null,
-          },
-          { onConflict: 'id' },
-        ),
+      const { data, error } = await withTimeout(
+        supabase.functions.invoke<{ authorized: boolean; reason?: AuthDenialReason }>('verify-discord-member', {
+          body: { providerToken },
+        }),
+        15000,
       )
+      if (error || !data?.authorized) {
+        setDenialReason(data?.reason ?? 'server_error')
+        return false
+      }
+      setDenialReason(null)
+      return true
     } catch {
-      // best-effort sync; the row already exists from the on-signup trigger
+      setDenialReason('server_error')
+      return false
     }
   }, [])
 
@@ -77,9 +88,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false))
 
     const { data: subscription } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      if (event === 'SIGNED_IN' && newSession) {
+        const authorized = await verifyDiscordMembership(newSession)
+        if (!authorized) {
+          setSession(null)
+          setStaff(null)
+          await supabase.auth.signOut({ scope: 'local' })
+          return
+        }
+      }
+
       setSession(newSession)
       if (newSession) {
-        if (event === 'SIGNED_IN') await syncStaffFromDiscord(newSession)
         await loadStaff(newSession.user.id)
       } else {
         setStaff(null)
@@ -87,12 +107,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
 
     return () => subscription.subscription.unsubscribe()
-  }, [loadStaff, syncStaffFromDiscord])
+  }, [loadStaff, verifyDiscordMembership])
 
   const signInWithDiscord = useCallback(async () => {
+    setDenialReason(null)
     await supabase.auth.signInWithOAuth({
       provider: 'discord',
-      options: { redirectTo: window.location.origin + import.meta.env.BASE_URL },
+      options: {
+        redirectTo: window.location.origin + import.meta.env.BASE_URL,
+        scopes: 'identify guilds.members.read',
+      },
     })
   }, [])
 
@@ -101,7 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ session, staff, loading, signInWithDiscord, signOut, refreshStaff }}>
+    <AuthContext.Provider value={{ session, staff, loading, denialReason, signInWithDiscord, signOut, refreshStaff }}>
       {children}
     </AuthContext.Provider>
   )
