@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ClipboardCheck, Copy } from 'lucide-react'
-import { OP_TEMPLATES } from '@/lib/opTemplates'
+import { supabase, type OpTemplate } from '@/lib/supabase'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
@@ -10,6 +10,7 @@ import { AnimatedList, AnimatedListItem } from '@/components/ui/AnimatedList'
 import { cn } from '@/lib/utils'
 
 export function DossierMedicalTab() {
+  const [templates, setTemplates] = useState<OpTemplate[]>([])
   const [patient, setPatient] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [motif, setMotif] = useState('')
@@ -17,8 +18,18 @@ export function DossierMedicalTab() {
   const [prescription, setPrescription] = useState('')
   const [copied, setCopied] = useState(false)
 
+  useEffect(() => {
+    supabase
+      .from('op_templates')
+      .select('*')
+      .order('label')
+      .then(({ data }) => {
+        if (data) setTemplates(data)
+      })
+  }, [])
+
   function applyTemplate(id: string) {
-    const tpl = OP_TEMPLATES.find((t) => t.id === id)
+    const tpl = templates.find((t) => t.id === id)
     if (!tpl) return
     setSelectedId(id)
     setMotif(tpl.motif)
@@ -60,7 +71,7 @@ export function DossierMedicalTab() {
 
         <h3 className="text-white/60 text-xs uppercase tracking-[2px] font-bold mb-3">Type d'opération</h3>
         <AnimatedList className="grid sm:grid-cols-2 gap-2 mb-5">
-          {OP_TEMPLATES.map((tpl) => (
+          {templates.map((tpl) => (
             <AnimatedListItem key={tpl.id}>
               <button
                 type="button"
@@ -77,6 +88,7 @@ export function DossierMedicalTab() {
             </AnimatedListItem>
           ))}
         </AnimatedList>
+        {templates.length === 0 && <p className="text-white/30 text-sm text-center py-4 mb-5">Aucun type d'opération configuré. La Direction peut en ajouter depuis Gestion.</p>}
 
         <div className="grid gap-4 mb-4">
           <Field label="Motif">

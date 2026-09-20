@@ -1,7 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Play, Pause, Square, RefreshCw } from 'lucide-react'
 import { useAuth } from '@/auth/AuthContext'
-import { supabase, ROLE_LABELS, STATUS_LABELS, CODE_LABELS, type Staff, type Unit, type DutyStatus, type EmergencyCode } from '@/lib/supabase'
+import {
+  supabase,
+  ROLE_LABELS,
+  STATUS_LABELS,
+  CODE_LABELS,
+  INTERVENTION_SHORTCUTS,
+  type Staff,
+  type Unit,
+  type DutyStatus,
+  type EmergencyCode,
+} from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -52,6 +62,11 @@ export function ServicesTab() {
   const [newUnitLieu, setNewUnitLieu] = useState('')
   const [joinUnitId, setJoinUnitId] = useState('')
 
+  const [vehicule, setVehicule] = useState('')
+  const [commentaire, setCommentaire] = useState('')
+  const [defibrillateur, setDefibrillateur] = useState(false)
+  const [detailsDirty, setDetailsDirty] = useState(false)
+
   const fetchAll = useCallback(async () => {
     const [{ data: staffData }, { data: unitData }] = await Promise.all([
       supabase.from('staff').select('*').order('full_name'),
@@ -79,6 +94,14 @@ export function ServicesTab() {
   }, [])
 
   const unitsById = useMemo(() => new Map(units.map((u) => [u.id, u])), [units])
+
+  useEffect(() => {
+    if (detailsDirty) return
+    const unit = staff?.unit_id ? unitsById.get(staff.unit_id) : null
+    setVehicule(unit?.vehicule ?? '')
+    setCommentaire(unit?.commentaire ?? '')
+    setDefibrillateur(unit?.defibrillateur ?? false)
+  }, [staff?.unit_id, unitsById, detailsDirty])
 
   const activeUnits = useMemo(() => units.filter((u) => roster.some((s) => s.unit_id === u.id)), [units, roster])
 
@@ -174,6 +197,31 @@ export function ServicesTab() {
     }
   }
 
+  async function handleMettreAJour() {
+    if (!staff?.unit_id || submitting) return
+    setSubmitting(true)
+    try {
+      await supabase
+        .from('units')
+        .update({ vehicule: vehicule.trim() || null, commentaire: commentaire.trim() || null, defibrillateur })
+        .eq('id', staff.unit_id)
+      await supabase
+        .from('shifts')
+        .update({ vehicule: vehicule.trim() || null, commentaire: commentaire.trim() || null, defibrillateur })
+        .eq('staff_id', staff.id)
+        .is('ended_at', null)
+      setDetailsDirty(false)
+      await fetchAll()
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  function applyShortcut(label: string) {
+    setCommentaire(label)
+    setDetailsDirty(true)
+  }
+
   async function handlePause() {
     if (!staff || submitting) return
     setSubmitting(true)
@@ -194,6 +242,7 @@ export function ServicesTab() {
     try {
       await supabase.from('staff').update({ unit_id: null, status: 'hors_service', shift_started_at: null }).eq('id', staff.id)
       await supabase.from('shifts').update({ ended_at: new Date().toISOString() }).eq('staff_id', staff.id).is('ended_at', null)
+      setDetailsDirty(false)
       await Promise.all([refreshStaff(), fetchAll()])
     } finally {
       setSubmitting(false)
@@ -267,6 +316,67 @@ export function ServicesTab() {
             </div>
           </div>
         )}
+        {staff.unit_id && staff.status !== 'hors_service' && (
+          <div className="mb-4 flex flex-col gap-4">
+            <div className="grid sm:grid-cols-2 gap-4">
+              <Field label="Véhicule">
+                <Input
+                  placeholder="ex: VAPID JIY715"
+                  value={vehicule}
+                  onChange={(e) => {
+                    setVehicule(e.target.value)
+                    setDetailsDirty(true)
+                  }}
+                />
+              </Field>
+              <Field label="Défibrillateur">
+                <Select
+                  value={defibrillateur ? 'oui' : 'non'}
+                  onChange={(e) => {
+                    setDefibrillateur(e.target.value === 'oui')
+                    setDetailsDirty(true)
+                  }}
+                >
+                  <option value="non">Non</option>
+                  <option value="oui">Oui</option>
+                </Select>
+              </Field>
+            </div>
+            <Field label="Commentaire">
+              <Input
+                placeholder="ex: Code 3, RDV Psy..."
+                value={commentaire}
+                onChange={(e) => {
+                  setCommentaire(e.target.value)
+                  setDetailsDirty(true)
+                }}
+              />
+            </Field>
+            <div>
+              <p className="text-xs uppercase tracking-[1.5px] text-white/40 font-semibold mb-1.5">Interventions</p>
+              <div className="flex flex-wrap gap-2">
+                {INTERVENTION_SHORTCUTS.map((label) => (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => applyShortcut(label)}
+                    className={cn(
+                      'rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer',
+                      commentaire === label
+                        ? 'border-red/50 bg-red/10 text-neon-red'
+                        : 'border-white/10 bg-white/[0.03] text-white/60 hover:text-white hover:bg-white/[0.06]',
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <Button variant="ghost" size="sm" disabled={submitting || !detailsDirty} onClick={handleMettreAJour}>
+              Mettre à jour
+            </Button>
+          </div>
+        )}
         <div className="flex flex-col sm:flex-row gap-2">
           {staff.status !== 'en_service' && (
             <Button variant="green" disabled={submitting} onClick={handlePrendreService} className="flex-1">
@@ -312,8 +422,13 @@ export function ServicesTab() {
                 <p className="text-white/40 text-xs mb-1">
                   {unit.sector ? `Lieu : ${unit.sector} · ` : ''}
                   Début : {formatTime(unit.created_at)} · {teamLabel(members.length)}
+                  {unit.vehicule ? ` · Véhicule : ${unit.vehicule}` : ''}
                 </p>
-                <p className="text-white/40 text-xs">{members.map((s) => s.full_name).join(', ')}</p>
+                {unit.commentaire && <p className="text-white/50 text-xs mb-1 italic">{unit.commentaire}</p>}
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <p className="text-white/40 text-xs">{members.map((s) => s.full_name).join(', ')}</p>
+                  {unit.defibrillateur && <Badge variant="cyan">Défibrillateur</Badge>}
+                </div>
               </AnimatedListItem>
             )
           })}
@@ -339,11 +454,16 @@ export function ServicesTab() {
               )}
               <div className="flex-1 min-w-0">
                 <p className="text-white text-sm font-semibold truncate">{member.full_name}</p>
-                <p className="text-white/40 text-xs">
+                <p className="text-white/40 text-xs truncate">
                   {ROLE_LABELS[member.role]}
                   {member.unit_id && unitsById.get(member.unit_id) ? ` · ${unitsById.get(member.unit_id)!.name}` : ''}
+                  {member.unit_id && unitsById.get(member.unit_id)?.vehicule ? ` · ${unitsById.get(member.unit_id)!.vehicule}` : ''}
                 </p>
+                {member.unit_id && unitsById.get(member.unit_id)?.commentaire && (
+                  <p className="text-white/40 text-xs italic truncate">{unitsById.get(member.unit_id)!.commentaire}</p>
+                )}
               </div>
+              {member.unit_id && unitsById.get(member.unit_id)?.defibrillateur && <Badge variant="cyan">DEA</Badge>}
               {member.status !== 'hors_service' && member.shift_started_at && (
                 <span className="text-white/30 text-xs hidden sm:block">{formatDuration(member.shift_started_at, now)}</span>
               )}

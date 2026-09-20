@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import {
   supabase,
+  slugify,
   ROLE_LABELS,
   STATUS_LABELS,
   STOCK_ITEM_LABELS,
@@ -10,16 +11,26 @@ import {
   type StockRow,
   type Unit,
   type PrestationType,
+  type OpTemplate,
 } from '@/lib/supabase'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
 import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
 import { Badge } from '@/components/ui/Badge'
 import { AnimatedList, AnimatedListItem } from '@/components/ui/AnimatedList'
 import { HistoriqueTab } from './HistoriqueTab'
 
 const ROLE_KEYS = Object.keys(ROLE_LABELS) as StaffRole[]
+
+function uniqueSlug(label: string, existing: string[]) {
+  const base = slugify(label) || 'item'
+  if (!existing.includes(base)) return base
+  let i = 2
+  while (existing.includes(`${base}_${i}`)) i++
+  return `${base}_${i}`
+}
 
 export function GestionTab() {
   const [staffList, setStaffList] = useState<Staff[]>([])
@@ -29,24 +40,32 @@ export function GestionTab() {
   const [stockEdits, setStockEdits] = useState<Record<string, number>>({})
   const [prestationTypes, setPrestationTypes] = useState<PrestationType[]>([])
   const [tarifEdits, setTarifEdits] = useState<Record<string, number>>({})
-  const [newTypeId, setNewTypeId] = useState('')
+  const [labelEdits, setLabelEdits] = useState<Record<string, string>>({})
   const [newTypeLabel, setNewTypeLabel] = useState('')
   const [newTypeTarif, setNewTypeTarif] = useState(0)
+  const [opTemplates, setOpTemplates] = useState<OpTemplate[]>([])
+  const [opEdits, setOpEdits] = useState<Record<string, Partial<OpTemplate>>>({})
+  const [newOpLabel, setNewOpLabel] = useState('')
+  const [newOpMotif, setNewOpMotif] = useState('')
+  const [newOpProcede, setNewOpProcede] = useState('')
+  const [newOpPrescription, setNewOpPrescription] = useState('')
   const [searchStaffId, setSearchStaffId] = useState('')
 
   const fetchAll = useCallback(async () => {
-    const [{ data: s }, { data: u }, { data: a }, { data: st }, { data: pt }] = await Promise.all([
+    const [{ data: s }, { data: u }, { data: a }, { data: st }, { data: pt }, { data: ot }] = await Promise.all([
       supabase.from('staff').select('*').order('full_name'),
       supabase.from('units').select('*'),
       supabase.from('absences').select('*').order('created_at', { ascending: false }),
       supabase.from('stock').select('*').order('item_key'),
       supabase.from('prestation_types').select('*').order('label'),
+      supabase.from('op_templates').select('*').order('label'),
     ])
     if (s) setStaffList(s)
     if (u) setUnits(u)
     if (a) setAbsences(a)
     if (st) setStock(st)
     if (pt) setPrestationTypes(pt)
+    if (ot) setOpTemplates(ot)
   }, [])
 
   useEffect(() => {
@@ -82,10 +101,19 @@ export function GestionTab() {
   }
 
   async function saveTarif(id: string) {
-    const value = tarifEdits[id]
-    if (value === undefined) return
-    await supabase.from('prestation_types').update({ tarif: value }).eq('id', id)
+    const tarif = tarifEdits[id]
+    const label = labelEdits[id]
+    if (tarif === undefined && label === undefined) return
+    const patch: Record<string, unknown> = {}
+    if (tarif !== undefined) patch.tarif = tarif
+    if (label !== undefined) patch.label = label
+    await supabase.from('prestation_types').update(patch).eq('id', id)
     setTarifEdits((prev) => {
+      const next = { ...prev }
+      delete next[id]
+      return next
+    })
+    setLabelEdits((prev) => {
       const next = { ...prev }
       delete next[id]
       return next
@@ -94,11 +122,45 @@ export function GestionTab() {
   }
 
   async function addPrestationType() {
-    if (!newTypeId.trim() || !newTypeLabel.trim()) return
-    await supabase.from('prestation_types').insert({ id: newTypeId.trim(), label: newTypeLabel.trim(), tarif: newTypeTarif })
-    setNewTypeId('')
+    if (!newTypeLabel.trim()) return
+    const id = uniqueSlug(newTypeLabel, prestationTypes.map((t) => t.id))
+    await supabase.from('prestation_types').insert({ id, label: newTypeLabel.trim(), tarif: newTypeTarif })
     setNewTypeLabel('')
     setNewTypeTarif(0)
+    await fetchAll()
+  }
+
+  async function saveOpTemplate(id: string) {
+    const patch = opEdits[id]
+    if (!patch) return
+    await supabase.from('op_templates').update(patch).eq('id', id)
+    setOpEdits((prev) => {
+      const next = { ...prev }
+      delete next[id]
+      return next
+    })
+    await fetchAll()
+  }
+
+  async function deleteOpTemplate(id: string) {
+    await supabase.from('op_templates').delete().eq('id', id)
+    await fetchAll()
+  }
+
+  async function addOpTemplate() {
+    if (!newOpLabel.trim() || !newOpMotif.trim() || !newOpProcede.trim() || !newOpPrescription.trim()) return
+    const id = uniqueSlug(newOpLabel, opTemplates.map((t) => t.id))
+    await supabase.from('op_templates').insert({
+      id,
+      label: newOpLabel.trim(),
+      motif: newOpMotif.trim(),
+      procede: newOpProcede.trim(),
+      prescription: newOpPrescription.trim(),
+    })
+    setNewOpLabel('')
+    setNewOpMotif('')
+    setNewOpProcede('')
+    setNewOpPrescription('')
     await fetchAll()
   }
 
@@ -209,7 +271,11 @@ export function GestionTab() {
         <AnimatedList className="flex flex-col gap-2 mb-4">
           {prestationTypes.map((t) => (
             <AnimatedListItem key={t.id} className="flex items-center gap-2 rounded-lg border border-white/8 bg-white/[0.02] px-3 py-2">
-              <span className="text-white/70 text-xs flex-1">{t.label}</span>
+              <Input
+                className="flex-1"
+                value={labelEdits[t.id] ?? t.label}
+                onChange={(e) => setLabelEdits((prev) => ({ ...prev, [t.id]: e.target.value }))}
+              />
               <Input
                 type="number"
                 className="w-24"
@@ -222,9 +288,8 @@ export function GestionTab() {
             </AnimatedListItem>
           ))}
         </AnimatedList>
-        <div className="grid sm:grid-cols-3 gap-2">
-          <Input placeholder="id (ex: soins)" value={newTypeId} onChange={(e) => setNewTypeId(e.target.value)} />
-          <Input placeholder="Libellé" value={newTypeLabel} onChange={(e) => setNewTypeLabel(e.target.value)} />
+        <div className="grid sm:grid-cols-2 gap-2">
+          <Input placeholder="Libellé (ex: Soins)" value={newTypeLabel} onChange={(e) => setNewTypeLabel(e.target.value)} />
           <div className="flex gap-2">
             <Input type="number" placeholder="Tarif" value={newTypeTarif} onChange={(e) => setNewTypeTarif(Number(e.target.value))} />
             <Button size="sm" onClick={addPrestationType}>Ajouter</Button>
@@ -232,7 +297,59 @@ export function GestionTab() {
         </div>
       </Card>
 
-      <Card className="p-5" delay={0.28}>
+      <Card className="p-5" delay={0.26}>
+        <h2 className="text-white font-bold text-sm mb-4">Types d'opération (Dossier médical)</h2>
+        <AnimatedList className="flex flex-col gap-3 mb-4">
+          {opTemplates.map((t) => {
+            const edit = opEdits[t.id] ?? {}
+            return (
+              <AnimatedListItem key={t.id} className="rounded-lg border border-white/8 bg-white/[0.02] p-3 flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <Input
+                    className="flex-1 font-semibold"
+                    value={edit.label ?? t.label}
+                    onChange={(e) => setOpEdits((prev) => ({ ...prev, [t.id]: { ...prev[t.id], label: e.target.value } }))}
+                  />
+                  <Button size="sm" variant="ghost" onClick={() => saveOpTemplate(t.id)}>
+                    OK
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => deleteOpTemplate(t.id)}>
+                    Suppr.
+                  </Button>
+                </div>
+                <Input
+                  placeholder="Motif"
+                  value={edit.motif ?? t.motif}
+                  onChange={(e) => setOpEdits((prev) => ({ ...prev, [t.id]: { ...prev[t.id], motif: e.target.value } }))}
+                />
+                <Textarea
+                  rows={2}
+                  placeholder="Procédé"
+                  value={edit.procede ?? t.procede}
+                  onChange={(e) => setOpEdits((prev) => ({ ...prev, [t.id]: { ...prev[t.id], procede: e.target.value } }))}
+                />
+                <Textarea
+                  rows={2}
+                  placeholder="Prescription"
+                  value={edit.prescription ?? t.prescription}
+                  onChange={(e) => setOpEdits((prev) => ({ ...prev, [t.id]: { ...prev[t.id], prescription: e.target.value } }))}
+                />
+              </AnimatedListItem>
+            )
+          })}
+          {opTemplates.length === 0 && <p className="text-white/30 text-sm text-center py-4">Aucun type d'opération.</p>}
+        </AnimatedList>
+        <div className="rounded-lg border border-white/8 bg-white/[0.02] p-3 flex flex-col gap-2">
+          <p className="text-white/40 text-xs uppercase tracking-[1.5px] font-semibold">Nouveau type</p>
+          <Input placeholder="Libellé (ex: Fusillade · Retrait de balle)" value={newOpLabel} onChange={(e) => setNewOpLabel(e.target.value)} />
+          <Input placeholder="Motif" value={newOpMotif} onChange={(e) => setNewOpMotif(e.target.value)} />
+          <Textarea rows={2} placeholder="Procédé" value={newOpProcede} onChange={(e) => setNewOpProcede(e.target.value)} />
+          <Textarea rows={2} placeholder="Prescription" value={newOpPrescription} onChange={(e) => setNewOpPrescription(e.target.value)} />
+          <Button size="sm" onClick={addOpTemplate}>Ajouter</Button>
+        </div>
+      </Card>
+
+      <Card className="p-5" delay={0.32}>
         <h2 className="text-white font-bold text-sm mb-4">Historique par utilisateur</h2>
         <Select className="mb-4" value={searchStaffId} onChange={(e) => setSearchStaffId(e.target.value)}>
           <option value="">Choisir un agent...</option>

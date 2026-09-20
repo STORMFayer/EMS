@@ -15,8 +15,9 @@ import { AgendaTab } from './app/AgendaTab'
 import { DossierMedicalTab } from './app/DossierMedicalTab'
 import { HistoriqueTab } from './app/HistoriqueTab'
 import { GestionTab } from './app/GestionTab'
+import { AideTab } from './app/AideTab'
 
-type TabKey = 'services' | 'absence' | 'registre' | 'prestations' | 'agenda' | 'dossier_medical' | 'historique' | 'gestion'
+type TabKey = 'services' | 'absence' | 'registre' | 'prestations' | 'agenda' | 'dossier_medical' | 'aide' | 'historique' | 'gestion'
 
 const BASE_TABS: { key: TabKey; label: string }[] = [
   { key: 'services', label: 'Services' },
@@ -25,6 +26,7 @@ const BASE_TABS: { key: TabKey; label: string }[] = [
   { key: 'prestations', label: 'Prestations' },
   { key: 'agenda', label: 'Agenda' },
   { key: 'dossier_medical', label: 'Dossier médical' },
+  { key: 'aide', label: 'Aide' },
   { key: 'historique', label: 'Historique' },
 ]
 
@@ -147,6 +149,7 @@ export function Dashboard() {
             {tab === 'prestations' && <PrestationsTab />}
             {tab === 'agenda' && <AgendaTab />}
             {tab === 'dossier_medical' && <DossierMedicalTab />}
+            {tab === 'aide' && <AideTab />}
             {tab === 'historique' && <HistoriqueTab />}
             {tab === 'gestion' && isDirection(staff.role) && <GestionTab />}
           </motion.div>

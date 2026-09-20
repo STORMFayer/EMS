@@ -91,6 +91,9 @@ export interface Unit {
   name: string
   sector: string | null
   code: EmergencyCode | null
+  vehicule: string | null
+  commentaire: string | null
+  defibrillateur: boolean
   status: DutyStatus
   created_at: string
 }
@@ -101,10 +104,33 @@ export interface Shift {
   unit_name: string | null
   sector: string | null
   code: EmergencyCode | null
+  vehicule: string | null
+  commentaire: string | null
+  defibrillateur: boolean
   status_label: string | null
   started_at: string
   ended_at: string | null
   created_at: string
+}
+
+export const INTERVENTION_SHORTCUTS = [
+  'M.A.R.U.',
+  'A.S.G.',
+  'M.R.G.',
+  'D.W.B.',
+  'Don du sang',
+  'Superviseur (M.T.T.)',
+  'G.O.P.S.',
+  'P.S.S.',
+]
+
+export function slugify(label: string) {
+  return label
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
 }
 
 export type AbsenceStatus = 'en_attente' | 'validee' | 'refusee'
@@ -217,5 +243,23 @@ export interface Appointment {
   type: AppointmentType
   title: string | null
   scheduled_at: string
+  created_at: string
+}
+
+export interface OpTemplate {
+  id: string
+  label: string
+  motif: string
+  procede: string
+  prescription: string
+  created_at: string
+}
+
+export interface HelpArticle {
+  id: number
+  title: string
+  image_url: string | null
+  content: string | null
+  position: number
   created_at: string
 }
