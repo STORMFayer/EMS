@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
 import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
+import { AnimatedList, AnimatedListItem } from '@/components/ui/AnimatedList'
 import { HistoriqueTab } from './HistoriqueTab'
 
 const ROLE_KEYS = Object.keys(ROLE_LABELS) as StaffRole[]
@@ -78,15 +79,11 @@ export function GestionTab() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Card className="p-5 animate-fade-up">
+      <Card className="p-5">
         <h2 className="text-white font-bold text-sm mb-4">Utilisateurs</h2>
-        <div className="flex flex-col gap-2">
-          {staffList.map((s, i) => (
-            <div
-              key={s.id}
-              className="stagger-row hover-lift flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5"
-              style={{ animationDelay: `${i * 40}ms` }}
-            >
+        <AnimatedList className="flex flex-col gap-2">
+          {staffList.map((s) => (
+            <AnimatedListItem key={s.id} className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5">
               <div className="flex-1 min-w-0">
                 <p className="text-white text-sm font-semibold truncate">{s.full_name}</p>
                 <p className="text-white/40 text-xs">{s.discord_id ?? '—'}</p>
@@ -101,19 +98,18 @@ export function GestionTab() {
               <Badge variant={s.status === 'en_service' ? 'green' : s.status === 'en_pause' ? 'amber' : 'gray'}>
                 {STATUS_LABELS[s.status]}
               </Badge>
-            </div>
+            </AnimatedListItem>
           ))}
-        </div>
+        </AnimatedList>
       </Card>
 
-      <Card className="p-5 animate-fade-up" style={{ animationDelay: '60ms' }}>
+      <Card className="p-5" delay={0.06}>
         <h2 className="text-white font-bold text-sm mb-4">Services</h2>
-        <div className="flex flex-col gap-2">
-          {activeStaff.map((s, i) => (
-            <div
+        <AnimatedList className="flex flex-col gap-2">
+          {activeStaff.map((s) => (
+            <AnimatedListItem
               key={s.id}
-              className="stagger-row hover-lift flex items-center justify-between rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5"
-              style={{ animationDelay: `${i * 40}ms` }}
+              className="flex items-center justify-between rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5"
             >
               <div>
                 <p className="text-white text-sm font-semibold">{s.full_name}</p>
@@ -122,22 +118,21 @@ export function GestionTab() {
               <Button size="sm" variant="red" onClick={() => forceEnd(s.id)}>
                 Terminer
               </Button>
-            </div>
+            </AnimatedListItem>
           ))}
           {activeStaff.length === 0 && <p className="text-white/30 text-sm text-center py-4">Aucun service actif.</p>}
-        </div>
+        </AnimatedList>
       </Card>
 
-      <Card className="p-5 animate-fade-up" style={{ animationDelay: '120ms' }}>
+      <Card className="p-5" delay={0.12}>
         <h2 className="text-white font-bold text-sm mb-4">Absences en attente</h2>
-        <div className="flex flex-col gap-2">
-          {pendingAbsences.map((a, i) => {
+        <AnimatedList className="flex flex-col gap-2">
+          {pendingAbsences.map((a) => {
             const owner = staffList.find((s) => s.id === a.staff_id)
             return (
-              <div
+              <AnimatedListItem
                 key={a.id}
-                className="stagger-row hover-lift flex items-center justify-between rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5"
-                style={{ animationDelay: `${i * 40}ms` }}
+                className="flex items-center justify-between rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5"
               >
                 <div>
                   <p className="text-white text-sm font-semibold">{owner?.full_name ?? a.staff_id}</p>
@@ -153,22 +148,18 @@ export function GestionTab() {
                     Refuser
                   </Button>
                 </div>
-              </div>
+              </AnimatedListItem>
             )
           })}
           {pendingAbsences.length === 0 && <p className="text-white/30 text-sm text-center py-4">Aucune absence en attente.</p>}
-        </div>
+        </AnimatedList>
       </Card>
 
-      <Card className="p-5 animate-fade-up" style={{ animationDelay: '180ms' }}>
+      <Card className="p-5" delay={0.18}>
         <h2 className="text-white font-bold text-sm mb-4">Stock</h2>
-        <div className="grid sm:grid-cols-2 gap-2">
-          {stock.map((row, i) => (
-            <div
-              key={row.item_key}
-              className="stagger-row hover-lift flex items-center gap-2 rounded-lg border border-white/8 bg-white/[0.02] px-3 py-2"
-              style={{ animationDelay: `${i * 25}ms` }}
-            >
+        <AnimatedList className="grid sm:grid-cols-2 gap-2">
+          {stock.map((row) => (
+            <AnimatedListItem key={row.item_key} className="flex items-center gap-2 rounded-lg border border-white/8 bg-white/[0.02] px-3 py-2">
               <span className="text-white/70 text-xs flex-1">{STOCK_ITEM_LABELS[row.item_key]}</span>
               <Input
                 type="number"
@@ -179,12 +170,12 @@ export function GestionTab() {
               <Button size="sm" variant="ghost" onClick={() => saveStock(row.item_key)}>
                 OK
               </Button>
-            </div>
+            </AnimatedListItem>
           ))}
-        </div>
+        </AnimatedList>
       </Card>
 
-      <Card className="p-5 animate-fade-up" style={{ animationDelay: '240ms' }}>
+      <Card className="p-5" delay={0.24}>
         <h2 className="text-white font-bold text-sm mb-4">Historique par utilisateur</h2>
         <Select className="mb-4" value={searchStaffId} onChange={(e) => setSearchStaffId(e.target.value)}>
           <option value="">Choisir un agent...</option>

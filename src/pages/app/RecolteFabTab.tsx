@@ -14,11 +14,13 @@ function ProductionForm({
   items,
   source,
   buttonLabel,
+  delay,
 }: {
   title: string
   items: StockItemKey[]
   source: 'recolte' | 'fabrication'
   buttonLabel: string
+  delay?: number
 }) {
   const { staff } = useAuth()
   const [objet, setObjet] = useState<StockItemKey | ''>('')
@@ -50,7 +52,7 @@ function ProductionForm({
   }
 
   return (
-    <Card className="p-5 animate-fade-up">
+    <Card className="p-5" delay={delay}>
       <h2 className="text-white font-bold text-sm mb-4">{title}</h2>
       {error && <p className="text-red-300 text-xs mb-3 animate-pop-in">{error}</p>}
       {success && <p className="text-green-300 text-xs mb-3 animate-pop-in">Enregistré.</p>}
@@ -83,7 +85,7 @@ export function RecolteFabTab() {
   return (
     <div className="flex flex-col gap-6">
       <ProductionForm title="Récolte" items={RECOLTE_ITEMS} source="recolte" buttonLabel="Valider récolte" />
-      <ProductionForm title="Fabrication" items={FABRICATION_ITEMS} source="fabrication" buttonLabel="Valider fabrication" />
+      <ProductionForm title="Fabrication" items={FABRICATION_ITEMS} source="fabrication" buttonLabel="Valider fabrication" delay={0.08} />
     </div>
   )
 }

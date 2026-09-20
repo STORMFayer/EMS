@@ -7,6 +7,7 @@ import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber'
+import { AnimatedList, AnimatedListItem } from '@/components/ui/AnimatedList'
 
 const ITEM_KEYS = Object.keys(STOCK_ITEM_LABELS) as StockItemKey[]
 
@@ -59,7 +60,7 @@ export function RegistreTab() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Card className="p-5 animate-fade-up">
+      <Card className="p-5">
         <h2 className="text-white font-bold text-sm mb-4">Registre</h2>
         {error && <p className="text-red-300 text-xs mb-3 animate-pop-in">{error}</p>}
         {success && <p className="text-green-300 text-xs mb-3 animate-pop-in">Enregistré.</p>}
@@ -94,22 +95,21 @@ export function RegistreTab() {
         </Button>
       </Card>
 
-      <Card className="p-5 animate-fade-up">
+      <Card className="p-5" delay={0.1}>
         <h2 className="text-white/60 text-xs uppercase tracking-[2px] font-bold mb-4">Stock actuel</h2>
-        <div className="grid sm:grid-cols-2 gap-2">
-          {stock.map((row, i) => (
-            <div
+        <AnimatedList className="grid sm:grid-cols-2 gap-2">
+          {stock.map((row) => (
+            <AnimatedListItem
               key={row.item_key}
-              className="stagger-row hover-lift flex items-center justify-between rounded-lg border border-white/8 bg-white/[0.02] px-3 py-2"
-              style={{ animationDelay: `${i * 25}ms` }}
+              className="flex items-center justify-between rounded-lg border border-white/8 bg-white/[0.02] px-3 py-2"
             >
               <span className="text-white/70 text-xs">{STOCK_ITEM_LABELS[row.item_key]}</span>
               <span className="text-white font-bold text-sm">
                 <AnimatedNumber value={row.quantity} />
               </span>
-            </div>
+            </AnimatedListItem>
           ))}
-        </div>
+        </AnimatedList>
       </Card>
     </div>
   )

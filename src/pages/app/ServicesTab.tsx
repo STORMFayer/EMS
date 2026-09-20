@@ -9,6 +9,7 @@ import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber'
+import { AnimatedList, AnimatedListItem } from '@/components/ui/AnimatedList'
 import { cn } from '@/lib/utils'
 
 const STATUS_BADGE: Record<DutyStatus, 'green' | 'amber' | 'gray'> = {
@@ -176,7 +177,7 @@ export function ServicesTab() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Card className="p-5 animate-fade-up">
+      <Card className="p-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-white font-bold text-sm">Prise de service</h2>
           <Button variant="ghost" size="sm" onClick={fetchAll}>
@@ -232,20 +233,16 @@ export function ServicesTab() {
       </Card>
 
       <div className="grid grid-cols-3 gap-3">
-        <StatTile label="En service" value={counts.en_service} variant="green" />
-        <StatTile label="En pause" value={counts.en_pause} variant="amber" />
-        <StatTile label="Hors service" value={counts.hors_service} variant="gray" />
+        <StatTile label="En service" value={counts.en_service} variant="green" delay={0.05} />
+        <StatTile label="En pause" value={counts.en_pause} variant="amber" delay={0.1} />
+        <StatTile label="Hors service" value={counts.hors_service} variant="gray" delay={0.15} />
       </div>
 
-      <Card className="p-5 animate-fade-up">
+      <Card className="p-5" delay={0.1}>
         <h2 className="text-white/60 text-xs uppercase tracking-[2px] font-bold mb-4">Services actifs</h2>
-        <div className="flex flex-col gap-2">
-          {activeUnits.map((unit, i) => (
-            <div
-              key={unit.id}
-              className="stagger-row hover-lift rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5"
-              style={{ animationDelay: `${i * 50}ms` }}
-            >
+        <AnimatedList className="flex flex-col gap-2">
+          {activeUnits.map((unit) => (
+            <AnimatedListItem key={unit.id} className="rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5">
               <div className="flex items-center justify-between mb-1">
                 <p className="text-white text-sm font-semibold">{unit.name}</p>
                 <Badge variant={STATUS_BADGE[unit.status]}>
@@ -255,23 +252,22 @@ export function ServicesTab() {
               </div>
               {unit.sector && <p className="text-white/40 text-xs mb-1">Secteur : {unit.sector}</p>}
               <p className="text-white/40 text-xs">{roster.filter((s) => s.unit_id === unit.id).map((s) => s.full_name).join(', ')}</p>
-            </div>
+            </AnimatedListItem>
           ))}
           {activeUnits.length === 0 && <p className="text-white/30 text-sm text-center py-4">Aucun service actif.</p>}
-        </div>
+        </AnimatedList>
       </Card>
 
-      <Card className="p-5 animate-fade-up">
+      <Card className="p-5" delay={0.15}>
         <h2 className="text-white/60 text-xs uppercase tracking-[2px] font-bold mb-4">Effectif ({roster.length})</h2>
-        <div className="flex flex-col gap-2">
-          {sortedRoster.map((member, i) => (
-            <div
+        <AnimatedList className="flex flex-col gap-2">
+          {sortedRoster.map((member) => (
+            <AnimatedListItem
               key={member.id}
               className={cn(
-                'stagger-row hover-lift flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5',
+                'flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5',
                 member.id === staff.id && 'border-red/30 bg-red/5',
               )}
-              style={{ animationDelay: `${i * 40}ms` }}
             >
               {member.avatar_url ? (
                 <img src={member.avatar_url} alt="" className="w-9 h-9 rounded-full border border-white/15" />
@@ -292,19 +288,29 @@ export function ServicesTab() {
                 {member.status === 'en_service' && <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-status-pulse" />}
                 {STATUS_LABELS[member.status]}
               </Badge>
-            </div>
+            </AnimatedListItem>
           ))}
           {sortedRoster.length === 0 && <p className="text-white/30 text-sm text-center py-6">Aucun agent enregistré.</p>}
-        </div>
+        </AnimatedList>
       </Card>
     </div>
   )
 }
 
-function StatTile({ label, value, variant }: { label: string; value: number; variant: 'green' | 'amber' | 'gray' }) {
+function StatTile({
+  label,
+  value,
+  variant,
+  delay,
+}: {
+  label: string
+  value: number
+  variant: 'green' | 'amber' | 'gray'
+  delay?: number
+}) {
   const colors = { green: 'text-green-400', amber: 'text-amber-400', gray: 'text-white/50' }
   return (
-    <Card className="p-4 text-center hover-lift animate-fade-up">
+    <Card className="p-4 text-center" delay={delay} hoverable>
       <p className={cn('font-display font-black text-2xl', colors[variant])}>
         <AnimatedNumber value={value} />
       </p>

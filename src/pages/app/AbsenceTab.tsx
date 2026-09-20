@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
+import { AnimatedList, AnimatedListItem } from '@/components/ui/AnimatedList'
 
 export function AbsenceTab() {
   const { staff } = useAuth()
@@ -50,7 +51,7 @@ export function AbsenceTab() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Card className="p-5 animate-fade-up">
+      <Card className="p-5">
         <h2 className="text-white font-bold text-sm mb-4">Déclarer une absence</h2>
         {error && <p className="text-red-300 text-xs mb-3 animate-pop-in">{error}</p>}
         <div className="grid sm:grid-cols-2 gap-4 mb-4">
@@ -71,14 +72,13 @@ export function AbsenceTab() {
         </Button>
       </Card>
 
-      <Card className="p-5 animate-fade-up">
+      <Card className="p-5" delay={0.1}>
         <h2 className="text-white/60 text-xs uppercase tracking-[2px] font-bold mb-4">Mon historique d'absences</h2>
-        <div className="flex flex-col gap-2">
-          {absences.map((a, i) => (
-            <div
+        <AnimatedList className="flex flex-col gap-2">
+          {absences.map((a) => (
+            <AnimatedListItem
               key={a.id}
-              className="stagger-row hover-lift flex items-center justify-between rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5"
-              style={{ animationDelay: `${i * 50}ms` }}
+              className="flex items-center justify-between rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5"
             >
               <div>
                 <p className="text-white text-sm">
@@ -89,10 +89,10 @@ export function AbsenceTab() {
               <Badge variant={a.status === 'validee' ? 'green' : a.status === 'refusee' ? 'red' : 'amber'}>
                 {ABSENCE_STATUS_LABELS[a.status]}
               </Badge>
-            </div>
+            </AnimatedListItem>
           ))}
           {absences.length === 0 && <p className="text-white/30 text-sm text-center py-4">Aucune absence.</p>}
-        </div>
+        </AnimatedList>
       </Card>
     </div>
   )

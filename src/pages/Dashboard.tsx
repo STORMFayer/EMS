@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { LogOut, Siren } from 'lucide-react'
 import { useAuth } from '@/auth/AuthContext'
 import { ROLE_LABELS, isDirection } from '@/lib/supabase'
@@ -23,9 +24,17 @@ const BASE_TABS: { key: TabKey; label: string }[] = [
   { key: 'historique', label: 'Historique' },
 ]
 
+const slideVariants = {
+  enter: (dir: number) => ({ opacity: 0, x: dir >= 0 ? 50 : -50 }),
+  center: { opacity: 1, x: 0 },
+  exit: (dir: number) => ({ opacity: 0, x: dir >= 0 ? -50 : 50 }),
+}
+
 export function Dashboard() {
   const { staff, signOut } = useAuth()
   const [tab, setTab] = useState<TabKey>('services')
+  const [direction, setDirection] = useState(0)
+  const tabOrderRef = useRef<TabKey[]>([])
 
   if (!staff) {
     return (
@@ -36,14 +45,26 @@ export function Dashboard() {
   }
 
   const tabs = isDirection(staff.role) ? [...BASE_TABS, { key: 'gestion' as TabKey, label: 'Gestion' }] : BASE_TABS
+  tabOrderRef.current = tabs.map((t) => t.key)
   const onDuty = staff.status === 'en_service'
+
+  function handleTabClick(key: TabKey) {
+    const order = tabOrderRef.current
+    setDirection(order.indexOf(key) >= order.indexOf(tab) ? 1 : -1)
+    setTab(key)
+  }
 
   return (
     <div className="relative min-h-screen bg-[#090d14] px-4 py-6 sm:px-8 sm:py-10 overflow-hidden">
       <Pulse className="opacity-60" />
 
       <div className="relative z-10 max-w-5xl mx-auto flex flex-col gap-6">
-        <header className="flex items-center justify-between animate-slide-right">
+        <motion.header
+          className="flex items-center justify-between"
+          initial={{ opacity: 0, x: 40 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ type: 'spring', stiffness: 260, damping: 24 }}
+        >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-red/15 border-2 border-red/30 flex items-center justify-center animate-float animate-siren-swap">
               <Siren size={18} className="text-red-light" />
@@ -56,9 +77,9 @@ export function Dashboard() {
           <Button variant="ghost" size="sm" onClick={signOut}>
             <LogOut size={14} /> Déconnexion
           </Button>
-        </header>
+        </motion.header>
 
-        <Card className={cn('p-4 flex items-center gap-3 animate-slide-left', onDuty && 'animate-card-glow border-green/30')}>
+        <Card className={cn('p-4 flex items-center gap-3', onDuty && 'animate-card-glow border-green/30')} from="left">
           <div className="relative">
             {staff.avatar_url ? (
               <img
@@ -79,31 +100,51 @@ export function Dashboard() {
 
         <div className="flex flex-wrap gap-2">
           {tabs.map((t, i) => (
-            <button
+            <motion.button
               key={t.key}
               type="button"
-              onClick={() => setTab(t.key)}
+              onClick={() => handleTabClick(t.key)}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ type: 'spring', stiffness: 340, damping: 26, delay: i * 0.05 }}
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.95 }}
               className={cn(
-                'stagger-row px-4 py-2 rounded-full text-xs font-bold uppercase tracking-[1px] border cursor-pointer transition-all duration-300',
-                tab === t.key
-                  ? 'neon-ring bg-red/15 text-neon-red scale-105'
-                  : 'bg-white/5 border-white/10 text-white/50 hover:text-white/80 hover:border-white/25 hover:-translate-y-0.5',
+                'relative px-4 py-2 rounded-full text-xs font-bold uppercase tracking-[1px] cursor-pointer',
+                tab === t.key ? 'text-neon-red' : 'text-white/50 hover:text-white/80',
               )}
-              style={{ animationDelay: `${i * 60}ms` }}
             >
-              {t.label}
-            </button>
+              {tab === t.key && (
+                <motion.span
+                  layoutId="active-tab-pill"
+                  className="absolute inset-0 rounded-full neon-ring bg-red/15"
+                  transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+                />
+              )}
+              {tab !== t.key && <span className="absolute inset-0 rounded-full border border-white/10 bg-white/5" />}
+              <span className="relative z-10">{t.label}</span>
+            </motion.button>
           ))}
         </div>
 
-        <div key={tab} className="animate-tab-in">
-          {tab === 'services' && <ServicesTab />}
-          {tab === 'absence' && <AbsenceTab />}
-          {tab === 'recolte_fab' && <RecolteFabTab />}
-          {tab === 'registre' && <RegistreTab />}
-          {tab === 'historique' && <HistoriqueTab />}
-          {tab === 'gestion' && isDirection(staff.role) && <GestionTab />}
-        </div>
+        <AnimatePresence mode="wait" custom={direction}>
+          <motion.div
+            key={tab}
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          >
+            {tab === 'services' && <ServicesTab />}
+            {tab === 'absence' && <AbsenceTab />}
+            {tab === 'recolte_fab' && <RecolteFabTab />}
+            {tab === 'registre' && <RegistreTab />}
+            {tab === 'historique' && <HistoriqueTab />}
+            {tab === 'gestion' && isDirection(staff.role) && <GestionTab />}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   )

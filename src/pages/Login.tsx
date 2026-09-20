@@ -47,7 +47,7 @@ export function Login() {
         <p className="text-white/40 text-sm mt-1">Connexion réservée au personnel médical</p>
       </div>
 
-      <Card className="relative z-10 w-full max-w-sm p-7 flex flex-col items-center gap-5 animate-pop-in hover-lift">
+      <Card className="relative z-10 w-full max-w-sm p-7 flex flex-col items-center gap-5" delay={0.15} hoverable>
         <p className="text-white/50 text-xs text-center leading-relaxed">
           Connecte-toi avec ton compte Discord pour accéder à l'effectif de service.
         </p>
