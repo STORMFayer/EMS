@@ -255,7 +255,7 @@ export function ServicesTab() {
     <div className="flex flex-col gap-6">
       <Card className="p-5">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-white font-bold text-sm">Prise de service</h2>
+          <h2 className="text-[var(--ink)] font-bold text-sm">Prise de service</h2>
           <Button variant="ghost" size="sm" onClick={fetchAll}>
             <RefreshCw size={13} /> Synchroniser
           </Button>
@@ -298,7 +298,7 @@ export function ServicesTab() {
         )}
         {staff.unit_id && staff.status === 'en_service' && (
           <div className="mb-4">
-            <p className="text-xs uppercase tracking-[1.5px] text-white/40 font-semibold mb-1.5">Code d'urgence</p>
+            <p className="text-xs uppercase tracking-[1.5px] text-[var(--ink)]/40 font-semibold mb-1.5">Code d'urgence</p>
             <div className="flex gap-2">
               {CODE_KEYS.map((code) => (
                 <Button
@@ -353,7 +353,7 @@ export function ServicesTab() {
               />
             </Field>
             <div>
-              <p className="text-xs uppercase tracking-[1.5px] text-white/40 font-semibold mb-1.5">Interventions</p>
+              <p className="text-xs uppercase tracking-[1.5px] text-[var(--ink)]/40 font-semibold mb-1.5">Interventions</p>
               <div className="flex flex-wrap gap-2">
                 {INTERVENTION_SHORTCUTS.map((label) => (
                   <button
@@ -364,7 +364,7 @@ export function ServicesTab() {
                       'rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer',
                       commentaire === label
                         ? 'border-red/50 bg-red/10 text-neon-red'
-                        : 'border-white/10 bg-white/[0.03] text-white/60 hover:text-white hover:bg-white/[0.06]',
+                        : 'border-[var(--ink)]/10 bg-[var(--ink)]/[0.03] text-[var(--ink)]/60 hover:text-[var(--ink)] hover:bg-[var(--ink)]/[0.06]',
                     )}
                   >
                     {label}
@@ -403,14 +403,14 @@ export function ServicesTab() {
       </div>
 
       <Card className="p-5" delay={0.1}>
-        <h2 className="text-white/60 text-xs uppercase tracking-[2px] font-bold mb-4">Services actifs</h2>
+        <h2 className="text-[var(--ink)]/60 text-xs uppercase tracking-[2px] font-bold mb-4">Services actifs</h2>
         <AnimatedList className="flex flex-col gap-2">
           {activeUnits.map((unit) => {
             const members = roster.filter((s) => s.unit_id === unit.id)
             return (
-              <AnimatedListItem key={unit.id} className="rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5">
+              <AnimatedListItem key={unit.id} className="rounded-xl border border-[var(--ink)]/8 bg-[var(--ink)]/[0.02] px-3.5 py-2.5">
                 <div className="flex items-center justify-between mb-1 gap-2 flex-wrap">
-                  <p className="text-white text-sm font-semibold">{unit.name}</p>
+                  <p className="text-[var(--ink)] text-sm font-semibold">{unit.name}</p>
                   <div className="flex items-center gap-1.5">
                     {unit.code && <Badge variant="red">{CODE_LABELS[unit.code]}</Badge>}
                     <Badge variant={STATUS_BADGE[unit.status]}>
@@ -419,53 +419,53 @@ export function ServicesTab() {
                     </Badge>
                   </div>
                 </div>
-                <p className="text-white/40 text-xs mb-1">
+                <p className="text-[var(--ink)]/40 text-xs mb-1">
                   {unit.sector ? `Lieu : ${unit.sector} · ` : ''}
                   Début : {formatTime(unit.created_at)} · {teamLabel(members.length)}
                   {unit.vehicule ? ` · Véhicule : ${unit.vehicule}` : ''}
                 </p>
-                {unit.commentaire && <p className="text-white/50 text-xs mb-1 italic">{unit.commentaire}</p>}
+                {unit.commentaire && <p className="text-[var(--ink)]/50 text-xs mb-1 italic">{unit.commentaire}</p>}
                 <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <p className="text-white/40 text-xs">{members.map((s) => s.full_name).join(', ')}</p>
+                  <p className="text-[var(--ink)]/40 text-xs">{members.map((s) => s.full_name).join(', ')}</p>
                   {unit.defibrillateur && <Badge variant="cyan">Défibrillateur</Badge>}
                 </div>
               </AnimatedListItem>
             )
           })}
-          {activeUnits.length === 0 && <p className="text-white/30 text-sm text-center py-4">Aucun service actif.</p>}
+          {activeUnits.length === 0 && <p className="text-[var(--ink)]/30 text-sm text-center py-4">Aucun service actif.</p>}
         </AnimatedList>
       </Card>
 
       <Card className="p-5" delay={0.15}>
-        <h2 className="text-white/60 text-xs uppercase tracking-[2px] font-bold mb-4">Effectif ({roster.length})</h2>
+        <h2 className="text-[var(--ink)]/60 text-xs uppercase tracking-[2px] font-bold mb-4">Effectif ({roster.length})</h2>
         <AnimatedList className="flex flex-col gap-2">
           {sortedRoster.map((member) => (
             <AnimatedListItem
               key={member.id}
               className={cn(
-                'flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5',
+                'flex items-center gap-3 rounded-xl border border-[var(--ink)]/8 bg-[var(--ink)]/[0.02] px-3.5 py-2.5',
                 member.id === staff.id && 'border-red/30 bg-red/5',
               )}
             >
               {member.avatar_url ? (
-                <img src={member.avatar_url} alt="" className="w-9 h-9 rounded-full border border-white/15" />
+                <img src={member.avatar_url} alt="" className="w-9 h-9 rounded-full border border-[var(--ink)]/15" />
               ) : (
-                <div className="w-9 h-9 rounded-full bg-white/10 border border-white/15" />
+                <div className="w-9 h-9 rounded-full bg-[var(--ink)]/10 border border-[var(--ink)]/15" />
               )}
               <div className="flex-1 min-w-0">
-                <p className="text-white text-sm font-semibold truncate">{member.full_name}</p>
-                <p className="text-white/40 text-xs truncate">
+                <p className="text-[var(--ink)] text-sm font-semibold truncate">{member.full_name}</p>
+                <p className="text-[var(--ink)]/40 text-xs truncate">
                   {ROLE_LABELS[member.role]}
                   {member.unit_id && unitsById.get(member.unit_id) ? ` · ${unitsById.get(member.unit_id)!.name}` : ''}
                   {member.unit_id && unitsById.get(member.unit_id)?.vehicule ? ` · ${unitsById.get(member.unit_id)!.vehicule}` : ''}
                 </p>
                 {member.unit_id && unitsById.get(member.unit_id)?.commentaire && (
-                  <p className="text-white/40 text-xs italic truncate">{unitsById.get(member.unit_id)!.commentaire}</p>
+                  <p className="text-[var(--ink)]/40 text-xs italic truncate">{unitsById.get(member.unit_id)!.commentaire}</p>
                 )}
               </div>
               {member.unit_id && unitsById.get(member.unit_id)?.defibrillateur && <Badge variant="cyan">DEA</Badge>}
               {member.status !== 'hors_service' && member.shift_started_at && (
-                <span className="text-white/30 text-xs hidden sm:block">{formatDuration(member.shift_started_at, now)}</span>
+                <span className="text-[var(--ink)]/30 text-xs hidden sm:block">{formatDuration(member.shift_started_at, now)}</span>
               )}
               <Badge variant={STATUS_BADGE[member.status]}>
                 {member.status === 'en_service' && <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-status-pulse" />}
@@ -473,7 +473,7 @@ export function ServicesTab() {
               </Badge>
             </AnimatedListItem>
           ))}
-          {sortedRoster.length === 0 && <p className="text-white/30 text-sm text-center py-6">Aucun agent enregistré.</p>}
+          {sortedRoster.length === 0 && <p className="text-[var(--ink)]/30 text-sm text-center py-6">Aucun agent enregistré.</p>}
         </AnimatedList>
       </Card>
     </div>
@@ -491,13 +491,13 @@ function StatTile({
   variant: 'green' | 'amber' | 'gray'
   delay?: number
 }) {
-  const colors = { green: 'text-green-400', amber: 'text-amber-400', gray: 'text-white/50' }
+  const colors = { green: 'text-green-400', amber: 'text-amber-400', gray: 'text-[var(--ink)]/50' }
   return (
     <Card className="p-4 text-center" delay={delay} hoverable>
       <p className={cn('font-display font-black text-2xl', colors[variant])}>
         <AnimatedNumber value={value} />
       </p>
-      <p className="text-white/40 text-[11px] uppercase tracking-[1.5px] mt-1">{label}</p>
+      <p className="text-[var(--ink)]/40 text-[11px] uppercase tracking-[1.5px] mt-1">{label}</p>
     </Card>
   )
 }

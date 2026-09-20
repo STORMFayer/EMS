@@ -107,12 +107,12 @@ export function HistoriqueTab({ staffId }: { staffId?: string }) {
 function HistorySection({ title, delay, children }: { title: string; delay: number; children: ReactNode }) {
   return (
     <Card className="p-5" delay={delay}>
-      <h2 className="text-white font-bold text-sm mb-3">{title}</h2>
-      <AnimatedList className="flex flex-col gap-1 text-white/70 text-sm">{children}</AnimatedList>
+      <h2 className="text-[var(--ink)] font-bold text-sm mb-3">{title}</h2>
+      <AnimatedList className="flex flex-col gap-1 text-[var(--ink)]/70 text-sm">{children}</AnimatedList>
     </Card>
   )
 }
 
 function Empty() {
-  return <p className="text-white/30 text-sm">—</p>
+  return <p className="text-[var(--ink)]/30 text-sm">—</p>
 }

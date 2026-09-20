@@ -66,7 +66,7 @@ export function PrestationsTab() {
   return (
     <div className="flex flex-col gap-6">
       <Card className="p-5">
-        <h2 className="text-white font-bold text-sm mb-4">Prestations</h2>
+        <h2 className="text-[var(--ink)] font-bold text-sm mb-4">Prestations</h2>
         {error && <p className="text-red-300 text-xs mb-3 animate-pop-in">{error}</p>}
         {success && <p className="text-green-300 text-xs mb-3 animate-pop-in">Enregistré.</p>}
         <div className="mb-4">
@@ -81,7 +81,7 @@ export function PrestationsTab() {
             </Select>
           </Field>
         </div>
-        <label className="flex items-center gap-2 text-sm text-white/70 mb-4 cursor-pointer">
+        <label className="flex items-center gap-2 text-sm text-[var(--ink)]/70 mb-4 cursor-pointer">
           <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} className="accent-red" />
           Service public (gratuit / pris en charge)
         </label>
@@ -96,21 +96,21 @@ export function PrestationsTab() {
       </Card>
 
       <Card className="p-5" delay={0.1}>
-        <h2 className="text-white/60 text-xs uppercase tracking-[2px] font-bold mb-4">Mes prestations</h2>
+        <h2 className="text-[var(--ink)]/60 text-xs uppercase tracking-[2px] font-bold mb-4">Mes prestations</h2>
         <AnimatedList className="flex flex-col gap-2">
           {mine.map((p) => (
-            <AnimatedListItem key={p.id} className="flex items-center justify-between rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5">
+            <AnimatedListItem key={p.id} className="flex items-center justify-between rounded-xl border border-[var(--ink)]/8 bg-[var(--ink)]/[0.02] px-3.5 py-2.5">
               <div>
-                <p className="text-white text-sm font-semibold">
+                <p className="text-[var(--ink)] text-sm font-semibold">
                   {types.find((t) => t.id === p.prestation_type_id)?.label ?? p.prestation_type_id}
                   {p.is_public && <span className="text-cyan text-xs ml-2">Service public</span>}
                 </p>
-                <p className="text-white/40 text-xs">{formatDateTime(p.created_at)} {p.details ? `· ${p.details}` : ''}</p>
+                <p className="text-[var(--ink)]/40 text-xs">{formatDateTime(p.created_at)} {p.details ? `· ${p.details}` : ''}</p>
               </div>
-              <p className="text-white font-bold text-sm">{p.montant}$</p>
+              <p className="text-[var(--ink)] font-bold text-sm">{p.montant}$</p>
             </AnimatedListItem>
           ))}
-          {mine.length === 0 && <p className="text-white/30 text-sm text-center py-4">Aucune prestation.</p>}
+          {mine.length === 0 && <p className="text-[var(--ink)]/30 text-sm text-center py-4">Aucune prestation.</p>}
         </AnimatedList>
       </Card>
     </div>

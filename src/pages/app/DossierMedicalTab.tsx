@@ -62,14 +62,14 @@ export function DossierMedicalTab() {
   return (
     <div className="flex flex-col gap-6">
       <Card className="p-5">
-        <h2 className="text-white font-bold text-sm mb-4">Dossier médical</h2>
+        <h2 className="text-[var(--ink)] font-bold text-sm mb-4">Dossier médical</h2>
         <div className="mb-4">
           <Field label="Patient">
             <Input placeholder="Nom du patient" value={patient} onChange={(e) => setPatient(e.target.value)} />
           </Field>
         </div>
 
-        <h3 className="text-white/60 text-xs uppercase tracking-[2px] font-bold mb-3">Type d'opération</h3>
+        <h3 className="text-[var(--ink)]/60 text-xs uppercase tracking-[2px] font-bold mb-3">Type d'opération</h3>
         <AnimatedList className="grid sm:grid-cols-2 gap-2 mb-5">
           {templates.map((tpl) => (
             <AnimatedListItem key={tpl.id}>
@@ -80,7 +80,7 @@ export function DossierMedicalTab() {
                   'w-full text-left rounded-xl border px-3.5 py-2.5 text-sm font-semibold transition-colors cursor-pointer',
                   selectedId === tpl.id
                     ? 'border-red/50 bg-red/10 text-neon-red'
-                    : 'border-white/8 bg-white/[0.02] text-white/70 hover:bg-white/[0.05] hover:text-white',
+                    : 'border-[var(--ink)]/8 bg-[var(--ink)]/[0.02] text-[var(--ink)]/70 hover:bg-[var(--ink)]/[0.05] hover:text-[var(--ink)]',
                 )}
               >
                 {tpl.label}
@@ -88,7 +88,7 @@ export function DossierMedicalTab() {
             </AnimatedListItem>
           ))}
         </AnimatedList>
-        {templates.length === 0 && <p className="text-white/30 text-sm text-center py-4 mb-5">Aucun type d'opération configuré. La Direction peut en ajouter depuis Gestion.</p>}
+        {templates.length === 0 && <p className="text-[var(--ink)]/30 text-sm text-center py-4 mb-5">Aucun type d'opération configuré. La Direction peut en ajouter depuis Gestion.</p>}
 
         <div className="grid gap-4 mb-4">
           <Field label="Motif">
@@ -105,13 +105,13 @@ export function DossierMedicalTab() {
 
       <Card className="p-5" delay={0.1}>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-white/60 text-xs uppercase tracking-[2px] font-bold">Texte à coller</h2>
+          <h2 className="text-[var(--ink)]/60 text-xs uppercase tracking-[2px] font-bold">Texte à coller</h2>
           <Button size="sm" variant={copied ? 'green' : 'ghost'} onClick={handleCopy}>
             {copied ? <ClipboardCheck size={13} /> : <Copy size={13} />}
             {copied ? 'Copié !' : 'Copier'}
           </Button>
         </div>
-        <pre className="whitespace-pre-wrap rounded-xl border border-white/8 bg-white/[0.02] px-4 py-3 text-white/80 text-sm font-mono leading-relaxed">
+        <pre className="whitespace-pre-wrap rounded-xl border border-[var(--ink)]/8 bg-[var(--ink)]/[0.02] px-4 py-3 text-[var(--ink)]/80 text-sm font-mono leading-relaxed">
           {generated}
         </pre>
       </Card>

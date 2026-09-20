@@ -76,7 +76,7 @@ export function RegistreTab() {
   return (
     <div className="flex flex-col gap-6">
       <Card className="p-5">
-        <h2 className="text-white font-bold text-sm mb-4">Registre</h2>
+        <h2 className="text-[var(--ink)] font-bold text-sm mb-4">Registre</h2>
         {error && <p className="text-red-300 text-xs mb-3 animate-pop-in">{error}</p>}
         {success && <p className="text-green-300 text-xs mb-3 animate-pop-in">Enregistré.</p>}
         <div className="grid sm:grid-cols-2 gap-4 mb-4">
@@ -96,7 +96,7 @@ export function RegistreTab() {
           </Field>
         </div>
 
-        <h3 className="text-white/40 text-xs uppercase tracking-[1.5px] font-semibold mb-2">Objets (sélection multiple)</h3>
+        <h3 className="text-[var(--ink)]/40 text-xs uppercase tracking-[1.5px] font-semibold mb-2">Objets (sélection multiple)</h3>
         <AnimatedList className="grid sm:grid-cols-2 gap-2 mb-4">
           {ITEM_KEYS.map((key) => {
             const active = selected.has(key)
@@ -109,7 +109,7 @@ export function RegistreTab() {
                     'w-full text-left rounded-lg border px-3 py-2 text-sm transition-colors cursor-pointer',
                     active
                       ? 'border-red/50 bg-red/10 text-neon-red font-semibold'
-                      : 'border-white/8 bg-white/[0.02] text-white/70 hover:bg-white/[0.05] hover:text-white',
+                      : 'border-[var(--ink)]/8 bg-[var(--ink)]/[0.02] text-[var(--ink)]/70 hover:bg-[var(--ink)]/[0.05] hover:text-[var(--ink)]',
                   )}
                 >
                   {STOCK_ITEM_LABELS[key]}
@@ -125,15 +125,15 @@ export function RegistreTab() {
       </Card>
 
       <Card className="p-5" delay={0.1}>
-        <h2 className="text-white/60 text-xs uppercase tracking-[2px] font-bold mb-4">Stock actuel</h2>
+        <h2 className="text-[var(--ink)]/60 text-xs uppercase tracking-[2px] font-bold mb-4">Stock actuel</h2>
         <AnimatedList className="grid sm:grid-cols-2 gap-2">
           {stock.map((row) => (
             <AnimatedListItem
               key={row.item_key}
-              className="flex items-center justify-between rounded-lg border border-white/8 bg-white/[0.02] px-3 py-2"
+              className="flex items-center justify-between rounded-lg border border-[var(--ink)]/8 bg-[var(--ink)]/[0.02] px-3 py-2"
             >
-              <span className="text-white/70 text-xs">{STOCK_ITEM_LABELS[row.item_key]}</span>
-              <span className="text-white font-bold text-sm">
+              <span className="text-[var(--ink)]/70 text-xs">{STOCK_ITEM_LABELS[row.item_key]}</span>
+              <span className="text-[var(--ink)] font-bold text-sm">
                 <AnimatedNumber value={row.quantity} />
               </span>
             </AnimatedListItem>

@@ -6,7 +6,7 @@ type BadgeVariant = 'green' | 'amber' | 'gray' | 'red' | 'cyan'
 const variants: Record<BadgeVariant, string> = {
   green: 'bg-green/15 text-green-300 border-green/30',
   amber: 'bg-amber/15 text-amber-300 border-amber/30',
-  gray:  'bg-white/8 text-white/60 border-white/12',
+  gray:  'bg-[var(--ink)]/8 text-[var(--ink)]/60 border-[var(--ink)]/12',
   red:   'bg-red/15 text-red-300 border-red/30',
   cyan:  'bg-cyan/15 text-cyan-300 border-cyan/30',
 }

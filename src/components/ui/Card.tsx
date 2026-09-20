@@ -32,7 +32,7 @@ export function Card({
       transition={{ type: 'spring', stiffness: 260, damping: 24, delay }}
       style={style}
       className={cn(
-        'rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl shadow-[0_2px_20px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.06)] transition-shadow duration-300',
+        'rounded-2xl border border-[var(--ink)]/10 bg-[var(--surface)] backdrop-blur-xl shadow-[var(--card-shadow)] transition-shadow duration-300',
         className,
       )}
     >

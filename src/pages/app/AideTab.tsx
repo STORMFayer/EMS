@@ -66,7 +66,7 @@ export function AideTab() {
     <div className="flex flex-col gap-6">
       {canManage && (
         <Card className="p-5">
-          <h2 className="text-white font-bold text-sm mb-4">Ajouter une fiche d'aide</h2>
+          <h2 className="text-[var(--ink)] font-bold text-sm mb-4">Ajouter une fiche d'aide</h2>
           {error && <p className="text-red-300 text-xs mb-3 animate-pop-in">{error}</p>}
           <div className="grid gap-4 mb-4">
             <Field label="Titre">
@@ -91,7 +91,7 @@ export function AideTab() {
             <AnimatedListItem key={a.id}>
               <Card className="p-5">
                 <div className="flex items-start justify-between gap-3 mb-2">
-                  <h3 className="text-white font-bold text-sm">{a.title}</h3>
+                  <h3 className="text-[var(--ink)] font-bold text-sm">{a.title}</h3>
                   {canManage && (
                     <Button size="sm" variant="ghost" onClick={() => handleDelete(a.id)}>
                       <Trash2 size={13} />
@@ -99,16 +99,16 @@ export function AideTab() {
                   )}
                 </div>
                 {a.image_url && (
-                  <img src={a.image_url} alt={a.title} className="w-full rounded-xl border border-white/8 mb-3 object-cover" />
+                  <img src={a.image_url} alt={a.title} className="w-full rounded-xl border border-[var(--ink)]/8 mb-3 object-cover" />
                 )}
-                {a.content && <p className="text-white/60 text-sm leading-relaxed whitespace-pre-wrap">{a.content}</p>}
+                {a.content && <p className="text-[var(--ink)]/60 text-sm leading-relaxed whitespace-pre-wrap">{a.content}</p>}
               </Card>
             </AnimatedListItem>
           ))}
         </AnimatedList>
         {articles.length === 0 && (
           <Card className="p-8 text-center">
-            <p className="text-white/30 text-sm">
+            <p className="text-[var(--ink)]/30 text-sm">
               Aucune fiche d'aide pour le moment.
               {canManage ? " Ajoute la première ci-dessus." : ' La Direction peut en ajouter.'}
             </p>

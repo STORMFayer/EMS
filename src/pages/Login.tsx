@@ -4,6 +4,7 @@ import { Siren } from 'lucide-react'
 import { useAuth } from '@/auth/AuthContext'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { Pulse } from '@/components/Pulse'
 import { DISCORD_INVITE_URL } from '@/lib/supabase'
 
@@ -33,10 +34,11 @@ export function Login() {
       style={{
         background: `
           radial-gradient(ellipse 70% 55% at 50% 20%, rgba(225,29,46,0.18) 0%, rgba(225,29,46,0) 55%),
-          linear-gradient(168deg, #0f1420 0%, #10141d 30%, #090d14 75%, #090d14 100%)
+          linear-gradient(168deg, var(--login-grad-1) 0%, var(--login-grad-2) 30%, var(--login-grad-3) 75%, var(--login-grad-3) 100%)
         `,
       }}
     >
+      <ThemeToggle className="absolute top-5 right-5 z-20" />
       <Pulse />
 
       <div className="relative z-10 flex flex-col items-center mb-8 animate-fade-up">
@@ -44,11 +46,11 @@ export function Login() {
           <Siren size={28} className="text-red-light" />
         </div>
         <h1 className="font-display font-black text-2xl text-neon-red">EMS Dashboard</h1>
-        <p className="text-white/40 text-sm mt-1">Connexion réservée au personnel médical</p>
+        <p className="text-[var(--ink)]/40 text-sm mt-1">Connexion réservée au personnel médical</p>
       </div>
 
       <Card className="relative z-10 w-full max-w-sm p-7 flex flex-col items-center gap-5" delay={0.15} hoverable>
-        <p className="text-white/50 text-xs text-center leading-relaxed">
+        <p className="text-[var(--ink)]/50 text-xs text-center leading-relaxed">
           Connecte-toi avec ton compte Discord pour accéder à l'effectif de service.
         </p>
 

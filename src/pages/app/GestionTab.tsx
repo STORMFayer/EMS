@@ -171,13 +171,13 @@ export function GestionTab() {
   return (
     <div className="flex flex-col gap-6">
       <Card className="p-5">
-        <h2 className="text-white font-bold text-sm mb-4">Utilisateurs</h2>
+        <h2 className="text-[var(--ink)] font-bold text-sm mb-4">Utilisateurs</h2>
         <AnimatedList className="flex flex-col gap-2">
           {staffList.map((s) => (
-            <AnimatedListItem key={s.id} className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5">
+            <AnimatedListItem key={s.id} className="flex items-center gap-3 rounded-xl border border-[var(--ink)]/8 bg-[var(--ink)]/[0.02] px-3.5 py-2.5">
               <div className="flex-1 min-w-0">
-                <p className="text-white text-sm font-semibold truncate">{s.full_name}</p>
-                <p className="text-white/40 text-xs">{s.discord_id ?? '—'}</p>
+                <p className="text-[var(--ink)] text-sm font-semibold truncate">{s.full_name}</p>
+                <p className="text-[var(--ink)]/40 text-xs">{s.discord_id ?? '—'}</p>
               </div>
               <Select className="w-auto" value={s.role} onChange={(e) => changeRole(s.id, e.target.value as StaffRole)}>
                 {ROLE_KEYS.map((r) => (
@@ -195,39 +195,39 @@ export function GestionTab() {
       </Card>
 
       <Card className="p-5" delay={0.06}>
-        <h2 className="text-white font-bold text-sm mb-4">Services</h2>
+        <h2 className="text-[var(--ink)] font-bold text-sm mb-4">Services</h2>
         <AnimatedList className="flex flex-col gap-2">
           {activeStaff.map((s) => (
             <AnimatedListItem
               key={s.id}
-              className="flex items-center justify-between rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5"
+              className="flex items-center justify-between rounded-xl border border-[var(--ink)]/8 bg-[var(--ink)]/[0.02] px-3.5 py-2.5"
             >
               <div>
-                <p className="text-white text-sm font-semibold">{s.full_name}</p>
-                <p className="text-white/40 text-xs">{s.unit_id ? unitsById.get(s.unit_id)?.name ?? '—' : '—'}</p>
+                <p className="text-[var(--ink)] text-sm font-semibold">{s.full_name}</p>
+                <p className="text-[var(--ink)]/40 text-xs">{s.unit_id ? unitsById.get(s.unit_id)?.name ?? '—' : '—'}</p>
               </div>
               <Button size="sm" variant="red" onClick={() => forceEnd(s.id)}>
                 Terminer
               </Button>
             </AnimatedListItem>
           ))}
-          {activeStaff.length === 0 && <p className="text-white/30 text-sm text-center py-4">Aucun service actif.</p>}
+          {activeStaff.length === 0 && <p className="text-[var(--ink)]/30 text-sm text-center py-4">Aucun service actif.</p>}
         </AnimatedList>
       </Card>
 
       <Card className="p-5" delay={0.12}>
-        <h2 className="text-white font-bold text-sm mb-4">Absences en attente</h2>
+        <h2 className="text-[var(--ink)] font-bold text-sm mb-4">Absences en attente</h2>
         <AnimatedList className="flex flex-col gap-2">
           {pendingAbsences.map((a) => {
             const owner = staffList.find((s) => s.id === a.staff_id)
             return (
               <AnimatedListItem
                 key={a.id}
-                className="flex items-center justify-between rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5"
+                className="flex items-center justify-between rounded-xl border border-[var(--ink)]/8 bg-[var(--ink)]/[0.02] px-3.5 py-2.5"
               >
                 <div>
-                  <p className="text-white text-sm font-semibold">{owner?.full_name ?? a.staff_id}</p>
-                  <p className="text-white/40 text-xs">
+                  <p className="text-[var(--ink)] text-sm font-semibold">{owner?.full_name ?? a.staff_id}</p>
+                  <p className="text-[var(--ink)]/40 text-xs">
                     {a.start_date} → {a.end_date} {a.motif ? `· ${a.motif}` : ''}
                   </p>
                 </div>
@@ -242,16 +242,16 @@ export function GestionTab() {
               </AnimatedListItem>
             )
           })}
-          {pendingAbsences.length === 0 && <p className="text-white/30 text-sm text-center py-4">Aucune absence en attente.</p>}
+          {pendingAbsences.length === 0 && <p className="text-[var(--ink)]/30 text-sm text-center py-4">Aucune absence en attente.</p>}
         </AnimatedList>
       </Card>
 
       <Card className="p-5" delay={0.18}>
-        <h2 className="text-white font-bold text-sm mb-4">Stock</h2>
+        <h2 className="text-[var(--ink)] font-bold text-sm mb-4">Stock</h2>
         <AnimatedList className="grid sm:grid-cols-2 gap-2">
           {stock.map((row) => (
-            <AnimatedListItem key={row.item_key} className="flex items-center gap-2 rounded-lg border border-white/8 bg-white/[0.02] px-3 py-2">
-              <span className="text-white/70 text-xs flex-1">{STOCK_ITEM_LABELS[row.item_key]}</span>
+            <AnimatedListItem key={row.item_key} className="flex items-center gap-2 rounded-lg border border-[var(--ink)]/8 bg-[var(--ink)]/[0.02] px-3 py-2">
+              <span className="text-[var(--ink)]/70 text-xs flex-1">{STOCK_ITEM_LABELS[row.item_key]}</span>
               <Input
                 type="number"
                 className="w-20"
@@ -267,10 +267,10 @@ export function GestionTab() {
       </Card>
 
       <Card className="p-5" delay={0.24}>
-        <h2 className="text-white font-bold text-sm mb-4">Tarifs prestations</h2>
+        <h2 className="text-[var(--ink)] font-bold text-sm mb-4">Tarifs prestations</h2>
         <AnimatedList className="flex flex-col gap-2 mb-4">
           {prestationTypes.map((t) => (
-            <AnimatedListItem key={t.id} className="flex items-center gap-2 rounded-lg border border-white/8 bg-white/[0.02] px-3 py-2">
+            <AnimatedListItem key={t.id} className="flex items-center gap-2 rounded-lg border border-[var(--ink)]/8 bg-[var(--ink)]/[0.02] px-3 py-2">
               <Input
                 className="flex-1"
                 value={labelEdits[t.id] ?? t.label}
@@ -298,12 +298,12 @@ export function GestionTab() {
       </Card>
 
       <Card className="p-5" delay={0.26}>
-        <h2 className="text-white font-bold text-sm mb-4">Types d'opération (Dossier médical)</h2>
+        <h2 className="text-[var(--ink)] font-bold text-sm mb-4">Types d'opération (Dossier médical)</h2>
         <AnimatedList className="flex flex-col gap-3 mb-4">
           {opTemplates.map((t) => {
             const edit = opEdits[t.id] ?? {}
             return (
-              <AnimatedListItem key={t.id} className="rounded-lg border border-white/8 bg-white/[0.02] p-3 flex flex-col gap-2">
+              <AnimatedListItem key={t.id} className="rounded-lg border border-[var(--ink)]/8 bg-[var(--ink)]/[0.02] p-3 flex flex-col gap-2">
                 <div className="flex items-center gap-2">
                   <Input
                     className="flex-1 font-semibold"
@@ -337,10 +337,10 @@ export function GestionTab() {
               </AnimatedListItem>
             )
           })}
-          {opTemplates.length === 0 && <p className="text-white/30 text-sm text-center py-4">Aucun type d'opération.</p>}
+          {opTemplates.length === 0 && <p className="text-[var(--ink)]/30 text-sm text-center py-4">Aucun type d'opération.</p>}
         </AnimatedList>
-        <div className="rounded-lg border border-white/8 bg-white/[0.02] p-3 flex flex-col gap-2">
-          <p className="text-white/40 text-xs uppercase tracking-[1.5px] font-semibold">Nouveau type</p>
+        <div className="rounded-lg border border-[var(--ink)]/8 bg-[var(--ink)]/[0.02] p-3 flex flex-col gap-2">
+          <p className="text-[var(--ink)]/40 text-xs uppercase tracking-[1.5px] font-semibold">Nouveau type</p>
           <Input placeholder="Libellé (ex: Fusillade · Retrait de balle)" value={newOpLabel} onChange={(e) => setNewOpLabel(e.target.value)} />
           <Input placeholder="Motif" value={newOpMotif} onChange={(e) => setNewOpMotif(e.target.value)} />
           <Textarea rows={2} placeholder="Procédé" value={newOpProcede} onChange={(e) => setNewOpProcede(e.target.value)} />
@@ -350,7 +350,7 @@ export function GestionTab() {
       </Card>
 
       <Card className="p-5" delay={0.32}>
-        <h2 className="text-white font-bold text-sm mb-4">Historique par utilisateur</h2>
+        <h2 className="text-[var(--ink)] font-bold text-sm mb-4">Historique par utilisateur</h2>
         <Select className="mb-4" value={searchStaffId} onChange={(e) => setSearchStaffId(e.target.value)}>
           <option value="">Choisir un agent...</option>
           {staffList.map((s) => (

@@ -81,7 +81,7 @@ export function AgendaTab() {
   return (
     <div className="flex flex-col gap-6">
       <Card className="p-5">
-        <h2 className="text-white font-bold text-sm mb-4">Nouveau rendez-vous</h2>
+        <h2 className="text-[var(--ink)] font-bold text-sm mb-4">Nouveau rendez-vous</h2>
         {error && <p className="text-red-300 text-xs mb-3 animate-pop-in">{error}</p>}
         <div className="grid sm:grid-cols-2 gap-4 mb-4">
           <Field label="Type">
@@ -108,21 +108,21 @@ export function AgendaTab() {
       </Card>
 
       <Card className="p-5" delay={0.1}>
-        <h2 className="text-white/60 text-xs uppercase tracking-[2px] font-bold mb-4">Rendez-vous à venir</h2>
+        <h2 className="text-[var(--ink)]/60 text-xs uppercase tracking-[2px] font-bold mb-4">Rendez-vous à venir</h2>
         <AnimatedList className="flex flex-col gap-2">
           {upcoming.map((a) => {
             const canDelete = a.staff_id === staff?.id || isDirection(staff?.role)
             return (
               <AnimatedListItem
                 key={a.id}
-                className="flex items-center justify-between rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5"
+                className="flex items-center justify-between rounded-xl border border-[var(--ink)]/8 bg-[var(--ink)]/[0.02] px-3.5 py-2.5"
               >
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <Badge variant="cyan">{APPOINTMENT_TYPE_LABELS[a.type]}</Badge>
-                    <p className="text-white text-sm font-semibold">{formatDateTime(a.scheduled_at)}</p>
+                    <p className="text-[var(--ink)] text-sm font-semibold">{formatDateTime(a.scheduled_at)}</p>
                   </div>
-                  <p className="text-white/40 text-xs">
+                  <p className="text-[var(--ink)]/40 text-xs">
                     {staffById.get(a.staff_id)?.full_name ?? 'Agent'} {a.title ? `· ${a.title}` : ''}
                   </p>
                 </div>
@@ -134,7 +134,7 @@ export function AgendaTab() {
               </AnimatedListItem>
             )
           })}
-          {upcoming.length === 0 && <p className="text-white/30 text-sm text-center py-4">Aucun rendez-vous à venir.</p>}
+          {upcoming.length === 0 && <p className="text-[var(--ink)]/30 text-sm text-center py-4">Aucun rendez-vous à venir.</p>}
         </AnimatedList>
       </Card>
     </div>

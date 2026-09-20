@@ -5,6 +5,7 @@ import { useAuth } from '@/auth/AuthContext'
 import { ROLE_LABELS, isDirection } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { Pulse } from '@/components/Pulse'
 import { cn } from '@/lib/utils'
 import { ServicesTab } from './app/ServicesTab'
@@ -44,8 +45,8 @@ export function Dashboard() {
 
   if (!staff) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#090d14]">
-        <span className="w-8 h-8 border-2 border-white/20 border-t-red rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[var(--bg)]">
+        <span className="w-8 h-8 border-2 border-[var(--ink)]/20 border-t-red rounded-full animate-spin" />
       </div>
     )
   }
@@ -61,7 +62,7 @@ export function Dashboard() {
   }
 
   return (
-    <div className="relative min-h-screen bg-[#090d14] px-4 py-6 sm:px-8 sm:py-10 overflow-hidden">
+    <div className="relative min-h-screen bg-[var(--bg)] px-4 py-6 sm:px-8 sm:py-10 overflow-hidden">
       <Pulse className="opacity-60" />
 
       <div className="relative z-10 max-w-5xl mx-auto flex flex-col gap-6">
@@ -77,12 +78,15 @@ export function Dashboard() {
             </div>
             <div>
               <h1 className="font-display font-black text-lg text-neon-red leading-tight">EMS Dashboard</h1>
-              <p className="text-white/40 text-xs">{tabs.find((t) => t.key === tab)?.label}</p>
+              <p className="text-[var(--ink)]/40 text-xs">{tabs.find((t) => t.key === tab)?.label}</p>
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={signOut}>
-            <LogOut size={14} /> Déconnexion
-          </Button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button variant="ghost" size="sm" onClick={signOut}>
+              <LogOut size={14} /> Déconnexion
+            </Button>
+          </div>
         </motion.header>
 
         <Card className={cn('p-4 flex items-center gap-3', onDuty && 'animate-card-glow border-green/30')} from="left">
@@ -91,16 +95,16 @@ export function Dashboard() {
               <img
                 src={staff.avatar_url}
                 alt=""
-                className={cn('w-11 h-11 rounded-full border-2 transition-colors', onDuty ? 'border-green' : 'border-white/15')}
+                className={cn('w-11 h-11 rounded-full border-2 transition-colors', onDuty ? 'border-green' : 'border-[var(--ink)]/15')}
               />
             ) : (
-              <div className={cn('w-11 h-11 rounded-full bg-white/10 border-2 transition-colors', onDuty ? 'border-green' : 'border-white/15')} />
+              <div className={cn('w-11 h-11 rounded-full bg-[var(--ink)]/10 border-2 transition-colors', onDuty ? 'border-green' : 'border-[var(--ink)]/15')} />
             )}
-            {onDuty && <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-green-400 border-2 border-[#0d1420] animate-status-pulse" />}
+            {onDuty && <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-green-400 border-2 border-[var(--bg)] animate-status-pulse" />}
           </div>
           <div>
-            <p className="text-white font-bold text-sm">{staff.full_name}</p>
-            <p className="text-white/40 text-xs">{ROLE_LABELS[staff.role]}</p>
+            <p className="text-[var(--ink)] font-bold text-sm">{staff.full_name}</p>
+            <p className="text-[var(--ink)]/40 text-xs">{ROLE_LABELS[staff.role]}</p>
           </div>
         </Card>
 
@@ -117,7 +121,7 @@ export function Dashboard() {
               whileTap={{ scale: 0.95 }}
               className={cn(
                 'relative px-4 py-2 rounded-full text-xs font-bold uppercase tracking-[1px] cursor-pointer',
-                tab === t.key ? 'text-neon-red' : 'text-white/50 hover:text-white/80',
+                tab === t.key ? 'text-neon-red' : 'text-[var(--ink)]/50 hover:text-[var(--ink)]/80',
               )}
             >
               {tab === t.key && (
@@ -127,7 +131,7 @@ export function Dashboard() {
                   transition={{ type: 'spring', stiffness: 380, damping: 32 }}
                 />
               )}
-              {tab !== t.key && <span className="absolute inset-0 rounded-full border border-white/10 bg-white/5" />}
+              {tab !== t.key && <span className="absolute inset-0 rounded-full border border-[var(--ink)]/10 bg-[var(--ink)]/5" />}
               <span className="relative z-10">{t.label}</span>
             </motion.button>
           ))}
