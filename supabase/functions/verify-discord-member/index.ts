@@ -32,14 +32,17 @@ Deno.serve(async (req) => {
     if (userErr || !userData.user) return json({ authorized: false, reason: 'unauthenticated' }, 401)
 
     const { providerToken } = await req.json()
-    if (!providerToken) return json({ authorized: false, reason: 'missing_token' }, 400)
+    if (!providerToken) return json({ authorized: false, reason: 'missing_token' })
 
     const memberRes = await fetch(`https://discord.com/api/v10/users/@me/guilds/${GUILD_ID}/member`, {
       headers: { Authorization: `Bearer ${providerToken}` },
     })
 
     if (memberRes.status === 404) return json({ authorized: false, reason: 'not_member' })
-    if (!memberRes.ok) return json({ authorized: false, reason: 'discord_error' }, 502)
+    if (!memberRes.ok) {
+      console.error('Discord member lookup failed', memberRes.status, await memberRes.text())
+      return json({ authorized: false, reason: 'discord_error' })
+    }
 
     const member = await memberRes.json()
     const roleIds: string[] = member.roles ?? []
@@ -50,7 +53,10 @@ Deno.serve(async (req) => {
       .select('role_id, staff_role, is_gate, priority')
       .in('role_id', roleIds.length > 0 ? roleIds : ['0'])
 
-    if (mapErr) return json({ authorized: false, reason: 'server_error' }, 500)
+    if (mapErr) {
+      console.error('discord_role_map query failed', mapErr.message)
+      return json({ authorized: false, reason: 'server_error' })
+    }
 
     const hasGate = (roleMap ?? []).some((r) => r.is_gate)
     if (!hasGate) return json({ authorized: false, reason: 'no_gate_role' })
@@ -69,10 +75,14 @@ Deno.serve(async (req) => {
       avatar_url: meta.avatar_url ?? null,
     }).eq('id', userData.user.id)
 
-    if (updateErr) return json({ authorized: false, reason: 'server_error' }, 500)
+    if (updateErr) {
+      console.error('staff update failed', updateErr.message)
+      return json({ authorized: false, reason: 'server_error' })
+    }
 
     return json({ authorized: true, role: newRole })
   } catch (e) {
-    return json({ authorized: false, reason: 'server_error', message: e instanceof Error ? e.message : String(e) }, 500)
+    console.error('verify-discord-member crashed', e)
+    return json({ authorized: false, reason: 'server_error', message: e instanceof Error ? e.message : String(e) })
   }
 })
