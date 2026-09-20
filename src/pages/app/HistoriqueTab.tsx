@@ -4,8 +4,7 @@ import { supabase, STOCK_ITEM_LABELS, type Shift, type StockMovement } from '@/l
 import { Card } from '@/components/ui/Card'
 
 function formatDateTime(iso: string) {
-  const d = new Date(iso)
-  return d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+  return new Date(iso).toLocaleDateString('fr-FR') + ' ' + new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
 }
 
 function formatTime(iso: string) {
@@ -48,47 +47,47 @@ export function HistoriqueTab({ staffId }: { staffId?: string }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <HistorySection title="Services en cours">
-        {enCours.map((s) => (
-          <p key={s.id} className="text-white/70 text-sm">
+      <HistorySection title="Services en cours" index={0}>
+        {enCours.map((s, i) => (
+          <Row key={s.id} i={i}>
             {formatDateTime(s.started_at)} → ... | {s.unit_name ?? '—'} | {s.status_label ?? ''}
-          </p>
+          </Row>
         ))}
         {enCours.length === 0 && <Empty />}
       </HistorySection>
 
-      <HistorySection title="Services finis">
-        {finis.map((s) => (
-          <p key={s.id} className="text-white/70 text-sm">
+      <HistorySection title="Services finis" index={1}>
+        {finis.map((s, i) => (
+          <Row key={s.id} i={i}>
             {formatDateTime(s.started_at)} → {s.ended_at ? formatTime(s.ended_at) : '—'} | {s.unit_name ?? '—'} | {s.status_label ?? ''}
-          </p>
+          </Row>
         ))}
         {finis.length === 0 && <Empty />}
       </HistorySection>
 
-      <HistorySection title="Récoltes">
-        {recoltes.map((m) => (
-          <p key={m.id} className="text-white/70 text-sm">
+      <HistorySection title="Récoltes" index={2}>
+        {recoltes.map((m, i) => (
+          <Row key={m.id} i={i}>
             {STOCK_ITEM_LABELS[m.item_key]} | {formatDateTime(m.created_at)} x{m.delta} | {m.lieu}
-          </p>
+          </Row>
         ))}
         {recoltes.length === 0 && <Empty />}
       </HistorySection>
 
-      <HistorySection title="Fabrications">
-        {fabrications.map((m) => (
-          <p key={m.id} className="text-white/70 text-sm">
+      <HistorySection title="Fabrications" index={3}>
+        {fabrications.map((m, i) => (
+          <Row key={m.id} i={i}>
             {STOCK_ITEM_LABELS[m.item_key]} | {formatDateTime(m.created_at)} x{m.delta} | {m.lieu}
-          </p>
+          </Row>
         ))}
         {fabrications.length === 0 && <Empty />}
       </HistorySection>
 
-      <HistorySection title="Registre">
-        {registre.map((m) => (
-          <p key={m.id} className="text-white/70 text-sm">
+      <HistorySection title="Registre" index={4}>
+        {registre.map((m, i) => (
+          <Row key={m.id} i={i}>
             {formatDateTime(m.created_at)} | {m.delta > 0 ? 'Dépôt' : 'Retrait'} {STOCK_ITEM_LABELS[m.item_key]} x{Math.abs(m.delta)} | {m.lieu}
-          </p>
+          </Row>
         ))}
         {registre.length === 0 && <Empty />}
       </HistorySection>
@@ -96,12 +95,20 @@ export function HistoriqueTab({ staffId }: { staffId?: string }) {
   )
 }
 
-function HistorySection({ title, children }: { title: string; children: ReactNode }) {
+function HistorySection({ title, index, children }: { title: string; index: number; children: ReactNode }) {
   return (
-    <Card className="p-5 animate-fade-up">
+    <Card className="p-5 animate-fade-up" style={{ animationDelay: `${index * 60}ms` }}>
       <h2 className="text-white font-bold text-sm mb-3">{title}</h2>
       <div className="flex flex-col gap-1">{children}</div>
     </Card>
+  )
+}
+
+function Row({ i, children }: { i: number; children: ReactNode }) {
+  return (
+    <p className="stagger-row text-white/70 text-sm" style={{ animationDelay: `${i * 30}ms` }}>
+      {children}
+    </p>
   )
 }
 

@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber'
 import { cn } from '@/lib/utils'
 
 const STATUS_BADGE: Record<DutyStatus, 'green' | 'amber' | 'gray'> = {
@@ -239,11 +240,18 @@ export function ServicesTab() {
       <Card className="p-5 animate-fade-up">
         <h2 className="text-white/60 text-xs uppercase tracking-[2px] font-bold mb-4">Services actifs</h2>
         <div className="flex flex-col gap-2">
-          {activeUnits.map((unit) => (
-            <div key={unit.id} className="rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5">
+          {activeUnits.map((unit, i) => (
+            <div
+              key={unit.id}
+              className="stagger-row hover-lift rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5"
+              style={{ animationDelay: `${i * 50}ms` }}
+            >
               <div className="flex items-center justify-between mb-1">
                 <p className="text-white text-sm font-semibold">{unit.name}</p>
-                <Badge variant={STATUS_BADGE[unit.status]}>{STATUS_LABELS[unit.status]}</Badge>
+                <Badge variant={STATUS_BADGE[unit.status]}>
+                  {unit.status === 'en_service' && <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-status-pulse" />}
+                  {STATUS_LABELS[unit.status]}
+                </Badge>
               </div>
               {unit.sector && <p className="text-white/40 text-xs mb-1">Secteur : {unit.sector}</p>}
               <p className="text-white/40 text-xs">{roster.filter((s) => s.unit_id === unit.id).map((s) => s.full_name).join(', ')}</p>
@@ -256,13 +264,14 @@ export function ServicesTab() {
       <Card className="p-5 animate-fade-up">
         <h2 className="text-white/60 text-xs uppercase tracking-[2px] font-bold mb-4">Effectif ({roster.length})</h2>
         <div className="flex flex-col gap-2">
-          {sortedRoster.map((member) => (
+          {sortedRoster.map((member, i) => (
             <div
               key={member.id}
               className={cn(
-                'flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5',
+                'stagger-row hover-lift flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5',
                 member.id === staff.id && 'border-red/30 bg-red/5',
               )}
+              style={{ animationDelay: `${i * 40}ms` }}
             >
               {member.avatar_url ? (
                 <img src={member.avatar_url} alt="" className="w-9 h-9 rounded-full border border-white/15" />
@@ -279,7 +288,10 @@ export function ServicesTab() {
               {member.status !== 'hors_service' && member.shift_started_at && (
                 <span className="text-white/30 text-xs hidden sm:block">{formatDuration(member.shift_started_at, now)}</span>
               )}
-              <Badge variant={STATUS_BADGE[member.status]}>{STATUS_LABELS[member.status]}</Badge>
+              <Badge variant={STATUS_BADGE[member.status]}>
+                {member.status === 'en_service' && <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-status-pulse" />}
+                {STATUS_LABELS[member.status]}
+              </Badge>
             </div>
           ))}
           {sortedRoster.length === 0 && <p className="text-white/30 text-sm text-center py-6">Aucun agent enregistré.</p>}
@@ -292,8 +304,10 @@ export function ServicesTab() {
 function StatTile({ label, value, variant }: { label: string; value: number; variant: 'green' | 'amber' | 'gray' }) {
   const colors = { green: 'text-green-400', amber: 'text-amber-400', gray: 'text-white/50' }
   return (
-    <Card className="p-4 text-center">
-      <p className={cn('font-display font-black text-2xl', colors[variant])}>{value}</p>
+    <Card className="p-4 text-center hover-lift animate-fade-up">
+      <p className={cn('font-display font-black text-2xl', colors[variant])}>
+        <AnimatedNumber value={value} />
+      </p>
       <p className="text-white/40 text-[11px] uppercase tracking-[1.5px] mt-1">{label}</p>
     </Card>
   )

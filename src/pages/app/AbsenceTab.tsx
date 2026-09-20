@@ -52,7 +52,7 @@ export function AbsenceTab() {
     <div className="flex flex-col gap-6">
       <Card className="p-5 animate-fade-up">
         <h2 className="text-white font-bold text-sm mb-4">Déclarer une absence</h2>
-        {error && <p className="text-red-300 text-xs mb-3">{error}</p>}
+        {error && <p className="text-red-300 text-xs mb-3 animate-pop-in">{error}</p>}
         <div className="grid sm:grid-cols-2 gap-4 mb-4">
           <Field label="Début">
             <Input type="date" value={start} onChange={(e) => setStart(e.target.value)} />
@@ -74,8 +74,12 @@ export function AbsenceTab() {
       <Card className="p-5 animate-fade-up">
         <h2 className="text-white/60 text-xs uppercase tracking-[2px] font-bold mb-4">Mon historique d'absences</h2>
         <div className="flex flex-col gap-2">
-          {absences.map((a) => (
-            <div key={a.id} className="flex items-center justify-between rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5">
+          {absences.map((a, i) => (
+            <div
+              key={a.id}
+              className="stagger-row hover-lift flex items-center justify-between rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5"
+              style={{ animationDelay: `${i * 50}ms` }}
+            >
               <div>
                 <p className="text-white text-sm">
                   {a.start_date} → {a.end_date}

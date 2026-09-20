@@ -39,15 +39,15 @@ export function Login() {
     >
       <Pulse />
 
-      <div className="relative z-10 flex flex-col items-center mb-8">
-        <div className="w-16 h-16 rounded-2xl bg-red/15 border border-red/30 flex items-center justify-center mb-4 animate-float">
+      <div className="relative z-10 flex flex-col items-center mb-8 animate-fade-up">
+        <div className="w-16 h-16 rounded-2xl bg-red/15 border border-red/30 flex items-center justify-center mb-4 animate-float animate-card-glow">
           <Siren size={28} className="text-red-light" />
         </div>
         <h1 className="font-display font-black text-2xl text-white">EMS Dashboard</h1>
         <p className="text-white/40 text-sm mt-1">Connexion réservée au personnel médical</p>
       </div>
 
-      <Card className="relative z-10 w-full max-w-sm p-7 flex flex-col items-center gap-5">
+      <Card className="relative z-10 w-full max-w-sm p-7 flex flex-col items-center gap-5 animate-pop-in hover-lift">
         <p className="text-white/50 text-xs text-center leading-relaxed">
           Connecte-toi avec ton compte Discord pour accéder à l'effectif de service.
         </p>
@@ -58,13 +58,14 @@ export function Login() {
           variant="red"
           disabled={connecting}
           onClick={handleDiscordLogin}
-          className="w-full"
+          className="relative w-full overflow-hidden"
         >
+          {!connecting && <span className="absolute inset-0 animate-shine pointer-events-none" />}
           <DiscordIcon /> {connecting ? 'Redirection...' : 'Se connecter avec Discord'}
         </Button>
 
         {denialReason && (
-          <div className="w-full rounded-lg bg-red/10 border border-red/25 p-3 flex flex-col gap-2">
+          <div className="w-full rounded-lg bg-red/10 border border-red/25 p-3 flex flex-col gap-2 animate-pop-in">
             <p className="text-red-300 text-xs text-center leading-relaxed">
               {DENIAL_MESSAGES[denialReason] ?? DENIAL_MESSAGES.server_error}
             </p>

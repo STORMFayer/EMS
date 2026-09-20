@@ -52,8 +52,8 @@ function ProductionForm({
   return (
     <Card className="p-5 animate-fade-up">
       <h2 className="text-white font-bold text-sm mb-4">{title}</h2>
-      {error && <p className="text-red-300 text-xs mb-3">{error}</p>}
-      {success && <p className="text-green-300 text-xs mb-3">Enregistré.</p>}
+      {error && <p className="text-red-300 text-xs mb-3 animate-pop-in">{error}</p>}
+      {success && <p className="text-green-300 text-xs mb-3 animate-pop-in">Enregistré.</p>}
       <div className="flex flex-col gap-4 mb-4">
         <Field label="Objet">
           <Select value={objet} onChange={(e) => setObjet(e.target.value as StockItemKey)}>

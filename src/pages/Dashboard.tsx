@@ -4,6 +4,7 @@ import { useAuth } from '@/auth/AuthContext'
 import { ROLE_LABELS, isDirection } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { Pulse } from '@/components/Pulse'
 import { cn } from '@/lib/utils'
 import { ServicesTab } from './app/ServicesTab'
 import { AbsenceTab } from './app/AbsenceTab'
@@ -35,13 +36,16 @@ export function Dashboard() {
   }
 
   const tabs = isDirection(staff.role) ? [...BASE_TABS, { key: 'gestion' as TabKey, label: 'Gestion' }] : BASE_TABS
+  const onDuty = staff.status === 'en_service'
 
   return (
-    <div className="min-h-screen bg-[#090d14] px-4 py-6 sm:px-8 sm:py-10">
-      <div className="max-w-5xl mx-auto flex flex-col gap-6">
-        <header className="flex items-center justify-between">
+    <div className="relative min-h-screen bg-[#090d14] px-4 py-6 sm:px-8 sm:py-10 overflow-hidden">
+      <Pulse className="opacity-60" />
+
+      <div className="relative z-10 max-w-5xl mx-auto flex flex-col gap-6">
+        <header className="flex items-center justify-between animate-fade-up">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-red/15 border border-red/30 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-red/15 border border-red/30 flex items-center justify-center animate-float">
               <Siren size={18} className="text-red-light" />
             </div>
             <div>
@@ -54,27 +58,36 @@ export function Dashboard() {
           </Button>
         </header>
 
-        <Card className="p-4 flex items-center gap-3 animate-fade-up">
-          {staff.avatar_url ? (
-            <img src={staff.avatar_url} alt="" className="w-11 h-11 rounded-full border border-white/15" />
-          ) : (
-            <div className="w-11 h-11 rounded-full bg-white/10 border border-white/15" />
-          )}
+        <Card className={cn('p-4 flex items-center gap-3 animate-fade-up', onDuty && 'animate-card-glow border-green/30')}>
+          <div className="relative">
+            {staff.avatar_url ? (
+              <img
+                src={staff.avatar_url}
+                alt=""
+                className={cn('w-11 h-11 rounded-full border-2 transition-colors', onDuty ? 'border-green' : 'border-white/15')}
+              />
+            ) : (
+              <div className={cn('w-11 h-11 rounded-full bg-white/10 border-2 transition-colors', onDuty ? 'border-green' : 'border-white/15')} />
+            )}
+            {onDuty && <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-green-400 border-2 border-[#0d1420] animate-status-pulse" />}
+          </div>
           <div>
             <p className="text-white font-bold text-sm">{staff.full_name}</p>
             <p className="text-white/40 text-xs">{ROLE_LABELS[staff.role]}</p>
           </div>
         </Card>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 animate-fade-up">
           {tabs.map((t) => (
             <button
               key={t.key}
               type="button"
               onClick={() => setTab(t.key)}
               className={cn(
-                'px-4 py-2 rounded-full text-xs font-bold uppercase tracking-[1px] border transition-colors cursor-pointer',
-                tab === t.key ? 'bg-red/15 border-red/40 text-white' : 'bg-white/5 border-white/10 text-white/50 hover:text-white/80',
+                'px-4 py-2 rounded-full text-xs font-bold uppercase tracking-[1px] border cursor-pointer transition-all duration-300',
+                tab === t.key
+                  ? 'bg-red/15 border-red/40 text-white scale-105 shadow-[0_4px_16px_rgba(225,29,46,0.25)]'
+                  : 'bg-white/5 border-white/10 text-white/50 hover:text-white/80 hover:border-white/25 hover:-translate-y-0.5',
               )}
             >
               {t.label}
@@ -82,12 +95,14 @@ export function Dashboard() {
           ))}
         </div>
 
-        {tab === 'services' && <ServicesTab />}
-        {tab === 'absence' && <AbsenceTab />}
-        {tab === 'recolte_fab' && <RecolteFabTab />}
-        {tab === 'registre' && <RegistreTab />}
-        {tab === 'historique' && <HistoriqueTab />}
-        {tab === 'gestion' && isDirection(staff.role) && <GestionTab />}
+        <div key={tab} className="animate-tab-in">
+          {tab === 'services' && <ServicesTab />}
+          {tab === 'absence' && <AbsenceTab />}
+          {tab === 'recolte_fab' && <RecolteFabTab />}
+          {tab === 'registre' && <RegistreTab />}
+          {tab === 'historique' && <HistoriqueTab />}
+          {tab === 'gestion' && isDirection(staff.role) && <GestionTab />}
+        </div>
       </div>
     </div>
   )

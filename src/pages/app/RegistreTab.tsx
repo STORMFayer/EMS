@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber'
 
 const ITEM_KEYS = Object.keys(STOCK_ITEM_LABELS) as StockItemKey[]
 
@@ -18,6 +19,7 @@ export function RegistreTab() {
   const [stock, setStock] = useState<StockRow[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
 
   const fetchStock = useCallback(async () => {
     const { data } = await supabase.from('stock').select('*').order('item_key')
@@ -39,6 +41,7 @@ export function RegistreTab() {
     if (!staff || !objet || submitting) return
     setSubmitting(true)
     setError(null)
+    setSuccess(false)
     const delta = action === 'registre_depot' ? quantite : -quantite
     const { error: err } = await supabase
       .from('stock_movements')
@@ -48,6 +51,7 @@ export function RegistreTab() {
       setError(err.message.includes('Stock insuffisant') ? 'Stock insuffisant.' : err.message)
       return
     }
+    setSuccess(true)
     setObjet('')
     setQuantite(1)
     await fetchStock()
@@ -57,7 +61,8 @@ export function RegistreTab() {
     <div className="flex flex-col gap-6">
       <Card className="p-5 animate-fade-up">
         <h2 className="text-white font-bold text-sm mb-4">Registre</h2>
-        {error && <p className="text-red-300 text-xs mb-3">{error}</p>}
+        {error && <p className="text-red-300 text-xs mb-3 animate-pop-in">{error}</p>}
+        {success && <p className="text-green-300 text-xs mb-3 animate-pop-in">Enregistré.</p>}
         <div className="grid sm:grid-cols-2 gap-4 mb-4">
           <Field label="Action">
             <Select value={action} onChange={(e) => setAction(e.target.value as typeof action)}>
@@ -92,10 +97,16 @@ export function RegistreTab() {
       <Card className="p-5 animate-fade-up">
         <h2 className="text-white/60 text-xs uppercase tracking-[2px] font-bold mb-4">Stock actuel</h2>
         <div className="grid sm:grid-cols-2 gap-2">
-          {stock.map((row) => (
-            <div key={row.item_key} className="flex items-center justify-between rounded-lg border border-white/8 bg-white/[0.02] px-3 py-2">
+          {stock.map((row, i) => (
+            <div
+              key={row.item_key}
+              className="stagger-row hover-lift flex items-center justify-between rounded-lg border border-white/8 bg-white/[0.02] px-3 py-2"
+              style={{ animationDelay: `${i * 25}ms` }}
+            >
               <span className="text-white/70 text-xs">{STOCK_ITEM_LABELS[row.item_key]}</span>
-              <span className="text-white font-bold text-sm">{row.quantity}</span>
+              <span className="text-white font-bold text-sm">
+                <AnimatedNumber value={row.quantity} />
+              </span>
             </div>
           ))}
         </div>
