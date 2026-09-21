@@ -28,11 +28,11 @@ export function Card({
     <motion.div
       initial={{ opacity: 0, ...offset }}
       animate={{ opacity: 1, x: 0, y: 0 }}
-      whileHover={hoverable ? { y: -4, boxShadow: '0 0 20px rgba(225,29,46,.32), 0 14px 34px rgba(0,0,0,.4)' } : undefined}
+      whileHover={hoverable ? { y: -3 } : undefined}
       transition={{ type: 'spring', stiffness: 260, damping: 24, delay }}
       style={style}
       className={cn(
-        'rounded-2xl border border-[var(--ink)]/10 bg-[var(--surface)] backdrop-blur-xl shadow-[var(--card-shadow)] transition-shadow duration-300',
+        'rounded-2xl border border-[var(--ink)]/8 bg-[var(--surface)] shadow-[var(--card-shadow)] transition-shadow duration-300',
         className,
       )}
     >

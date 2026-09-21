@@ -35,7 +35,7 @@ export function AnimatedListItem({
       layoutId={layoutId}
       variants={item}
       exit="exit"
-      whileHover={{ x: 4, boxShadow: '0 0 16px rgba(225,29,46,.28)', borderColor: 'rgba(225,29,46,.5)' }}
+      whileHover={{ x: 3 }}
       transition={{ type: 'spring', stiffness: 340, damping: 26 }}
       className={className}
     >

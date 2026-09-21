@@ -1,12 +1,12 @@
-import { useRef, useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { LogOut, Siren } from 'lucide-react'
+import { LayoutGrid, LogOut } from 'lucide-react'
 import { useAuth } from '@/auth/AuthContext'
 import { ROLE_LABELS, isDirection } from '@/lib/supabase'
-import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
+import { TILE_SECTIONS, type TabKey } from '@/lib/tiles'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
-import { Pulse } from '@/components/Pulse'
+import { HomeTiles } from '@/components/ui/HomeTiles'
+import { SectionHeader } from '@/components/ui/SectionHeader'
 import { cn } from '@/lib/utils'
 import { ServicesTab } from './app/ServicesTab'
 import { AbsenceTab } from './app/AbsenceTab'
@@ -18,30 +18,21 @@ import { HistoriqueTab } from './app/HistoriqueTab'
 import { GestionTab } from './app/GestionTab'
 import { AideTab } from './app/AideTab'
 
-type TabKey = 'services' | 'absence' | 'registre' | 'prestations' | 'agenda' | 'dossier_medical' | 'aide' | 'historique' | 'gestion'
-
-const BASE_TABS: { key: TabKey; label: string }[] = [
-  { key: 'services', label: 'Services' },
-  { key: 'absence', label: 'Absence' },
-  { key: 'registre', label: 'Registre' },
-  { key: 'prestations', label: 'Prestations' },
-  { key: 'agenda', label: 'Agenda' },
-  { key: 'dossier_medical', label: 'Dossier médical' },
-  { key: 'aide', label: 'Aide' },
-  { key: 'historique', label: 'Historique' },
-]
-
-const slideVariants = {
-  enter: (dir: number) => ({ opacity: 0, x: dir >= 0 ? 50 : -50 }),
-  center: { opacity: 1, x: 0 },
-  exit: (dir: number) => ({ opacity: 0, x: dir >= 0 ? -50 : 50 }),
+const TAB_CONTENT: Record<TabKey, ReactNode> = {
+  services: <ServicesTab />,
+  absence: <AbsenceTab />,
+  registre: <RegistreTab />,
+  prestations: <PrestationsTab />,
+  agenda: <AgendaTab />,
+  dossier_medical: <DossierMedicalTab />,
+  aide: <AideTab />,
+  historique: <HistoriqueTab />,
+  gestion: <GestionTab />,
 }
 
 export function Dashboard() {
   const { staff, signOut } = useAuth()
-  const [tab, setTab] = useState<TabKey>('services')
-  const [direction, setDirection] = useState(0)
-  const tabOrderRef = useRef<TabKey[]>([])
+  const [view, setView] = useState<TabKey | 'home'>('home')
 
   if (!staff) {
     return (
@@ -51,114 +42,83 @@ export function Dashboard() {
     )
   }
 
-  const tabs = isDirection(staff.role) ? [...BASE_TABS, { key: 'gestion' as TabKey, label: 'Gestion' }] : BASE_TABS
-  tabOrderRef.current = tabs.map((t) => t.key)
-  const onDuty = staff.status === 'en_service'
-
-  function handleTabClick(key: TabKey) {
-    const order = tabOrderRef.current
-    setDirection(order.indexOf(key) >= order.indexOf(tab) ? 1 : -1)
-    setTab(key)
-  }
+  const visibleTabs = TILE_SECTIONS.filter((s) => !s.direction || isDirection(staff.role)).map((s) => s.key)
+  const activeSection = view === 'home' ? null : TILE_SECTIONS.find((s) => s.key === view) ?? null
 
   return (
-    <div className="relative min-h-screen bg-[var(--bg)] px-4 py-6 sm:px-8 sm:py-10 overflow-hidden">
-      <Pulse className="opacity-60" />
-
-      <div className="relative z-10 max-w-5xl mx-auto flex flex-col gap-6">
-        <motion.header
-          className="flex items-center justify-between"
-          initial={{ opacity: 0, x: 40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ type: 'spring', stiffness: 260, damping: 24 }}
+    <div className="min-h-screen flex bg-[var(--bg)]">
+      <aside className="w-16 sm:w-20 shrink-0 flex flex-col items-center py-5 gap-4 bg-[var(--sidebar-bg)] border-r border-[var(--ink)]/8">
+        <button
+          type="button"
+          onClick={() => setView('home')}
+          aria-label="Accueil"
+          className={cn(
+            'w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer transition-colors',
+            view === 'home' ? 'bg-red text-white' : 'bg-[var(--ink)]/5 text-[var(--ink)]/60 hover:bg-[var(--ink)]/10 hover:text-[var(--ink)]',
+          )}
         >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-red/15 border-2 border-red/30 flex items-center justify-center animate-float animate-siren-swap">
-              <Siren size={18} className="text-red-light" />
-            </div>
-            <div>
-              <h1 className="font-display font-black text-lg text-neon-red leading-tight">EMS Dashboard</h1>
-              <p className="text-[var(--ink)]/40 text-xs">{tabs.find((t) => t.key === tab)?.label}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <Button variant="ghost" size="sm" onClick={signOut}>
-              <LogOut size={14} /> Déconnexion
-            </Button>
-          </div>
-        </motion.header>
+          <LayoutGrid size={18} />
+        </button>
 
-        <Card className={cn('p-4 flex items-center gap-3', onDuty && 'animate-card-glow border-green/30')} from="left">
-          <div className="relative">
-            {staff.avatar_url ? (
-              <img
-                src={staff.avatar_url}
-                alt=""
-                className={cn('w-11 h-11 rounded-full border-2 transition-colors', onDuty ? 'border-green' : 'border-[var(--ink)]/15')}
-              />
-            ) : (
-              <div className={cn('w-11 h-11 rounded-full bg-[var(--ink)]/10 border-2 transition-colors', onDuty ? 'border-green' : 'border-[var(--ink)]/15')} />
-            )}
-            {onDuty && <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-green-400 border-2 border-[var(--bg)] animate-status-pulse" />}
-          </div>
-          <div>
-            <p className="text-[var(--ink)] font-bold text-sm">{staff.full_name}</p>
-            <p className="text-[var(--ink)]/40 text-xs">{ROLE_LABELS[staff.role]}</p>
-          </div>
-        </Card>
+        <div className="flex-1" />
 
-        <div className="flex flex-wrap gap-2">
-          {tabs.map((t, i) => (
-            <motion.button
-              key={t.key}
-              type="button"
-              onClick={() => handleTabClick(t.key)}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ type: 'spring', stiffness: 340, damping: 26, delay: i * 0.05 }}
-              whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              className={cn(
-                'relative px-4 py-2 rounded-full text-xs font-bold uppercase tracking-[1px] cursor-pointer',
-                tab === t.key ? 'text-neon-red' : 'text-[var(--ink)]/50 hover:text-[var(--ink)]/80',
-              )}
+        {staff.avatar_url ? (
+          <img src={staff.avatar_url} alt="" className="w-9 h-9 rounded-full border border-[var(--ink)]/15" />
+        ) : (
+          <div className="w-9 h-9 rounded-full bg-[var(--ink)]/10 border border-[var(--ink)]/15" />
+        )}
+
+        <ThemeToggle />
+
+        <button
+          type="button"
+          onClick={signOut}
+          aria-label="Déconnexion"
+          className="w-10 h-10 rounded-xl bg-[var(--ink)]/5 text-[var(--ink)]/60 hover:bg-[var(--ink)]/10 hover:text-[var(--ink)] transition-colors flex items-center justify-center cursor-pointer"
+        >
+          <LogOut size={17} />
+        </button>
+      </aside>
+
+      <main className="flex-1 min-w-0 px-4 py-6 sm:px-8 sm:py-8 flex flex-col gap-6 overflow-y-auto">
+        <AnimatePresence mode="wait">
+          {view === 'home' ? (
+            <motion.div
+              key="home"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25 }}
+              className="flex flex-col gap-6 max-w-5xl w-full mx-auto"
             >
-              {tab === t.key && (
-                <motion.span
-                  layoutId="active-tab-pill"
-                  className="absolute inset-0 rounded-full neon-ring bg-red/15"
-                  transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+              <div>
+                <h1 className="font-display font-black text-xl text-[var(--ink)]">Bonjour, {staff.full_name}</h1>
+                <p className="text-[var(--ink)]/40 text-sm">{ROLE_LABELS[staff.role]}</p>
+              </div>
+              <HomeTiles tabs={visibleTabs} onSelect={(key) => setView(key)} />
+            </motion.div>
+          ) : (
+            <motion.div
+              key={view}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25 }}
+              className="flex flex-col gap-6 max-w-5xl w-full mx-auto"
+            >
+              {activeSection && (
+                <SectionHeader
+                  label={activeSection.label}
+                  icon={activeSection.icon}
+                  color={activeSection.color}
+                  onBack={() => setView('home')}
                 />
               )}
-              {tab !== t.key && <span className="absolute inset-0 rounded-full border border-[var(--ink)]/10 bg-[var(--ink)]/5" />}
-              <span className="relative z-10">{t.label}</span>
-            </motion.button>
-          ))}
-        </div>
-
-        <AnimatePresence mode="wait" custom={direction}>
-          <motion.div
-            key={tab}
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          >
-            {tab === 'services' && <ServicesTab />}
-            {tab === 'absence' && <AbsenceTab />}
-            {tab === 'registre' && <RegistreTab />}
-            {tab === 'prestations' && <PrestationsTab />}
-            {tab === 'agenda' && <AgendaTab />}
-            {tab === 'dossier_medical' && <DossierMedicalTab />}
-            {tab === 'aide' && <AideTab />}
-            {tab === 'historique' && <HistoriqueTab />}
-            {tab === 'gestion' && isDirection(staff.role) && <GestionTab />}
-          </motion.div>
+              {TAB_CONTENT[view]}
+            </motion.div>
+          )}
         </AnimatePresence>
-      </div>
+      </main>
     </div>
   )
 }

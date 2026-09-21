@@ -5,7 +5,6 @@ import { useAuth } from '@/auth/AuthContext'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
-import { Pulse } from '@/components/Pulse'
 import { DISCORD_INVITE_URL } from '@/lib/supabase'
 
 const DENIAL_MESSAGES: Record<string, string> = {
@@ -29,27 +28,18 @@ export function Login() {
   }
 
   return (
-    <div
-      className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-5"
-      style={{
-        background: `
-          radial-gradient(ellipse 70% 55% at 50% 20%, rgba(225,29,46,0.18) 0%, rgba(225,29,46,0) 55%),
-          linear-gradient(168deg, var(--login-grad-1) 0%, var(--login-grad-2) 30%, var(--login-grad-3) 75%, var(--login-grad-3) 100%)
-        `,
-      }}
-    >
+    <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-5 bg-[var(--bg)]">
       <ThemeToggle className="absolute top-5 right-5 z-20" />
-      <Pulse />
 
       <div className="relative z-10 flex flex-col items-center mb-8 animate-fade-up">
-        <div className="w-16 h-16 rounded-2xl bg-red/15 border-2 border-red/30 flex items-center justify-center mb-4 animate-float animate-siren-swap">
-          <Siren size={28} className="text-red-light" />
+        <div className="w-14 h-14 rounded-2xl bg-red/12 border border-red/25 flex items-center justify-center mb-4">
+          <Siren size={24} className="text-red" />
         </div>
         <h1 className="font-display font-black text-2xl text-neon-red">EMS Dashboard</h1>
         <p className="text-[var(--ink)]/40 text-sm mt-1">Connexion réservée au personnel médical</p>
       </div>
 
-      <Card className="relative z-10 w-full max-w-sm p-7 flex flex-col items-center gap-5" delay={0.15} hoverable>
+      <Card className="relative z-10 w-full max-w-sm p-7 flex flex-col items-center gap-5" delay={0.15}>
         <p className="text-[var(--ink)]/50 text-xs text-center leading-relaxed">
           Connecte-toi avec ton compte Discord pour accéder à l'effectif de service.
         </p>
@@ -62,7 +52,6 @@ export function Login() {
           onClick={handleDiscordLogin}
           className="relative w-full overflow-hidden"
         >
-          {!connecting && <span className="absolute inset-0 animate-shine pointer-events-none" />}
           <DiscordIcon /> {connecting ? 'Redirection...' : 'Se connecter avec Discord'}
         </Button>
 
