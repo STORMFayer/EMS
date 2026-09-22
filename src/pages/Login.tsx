@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { Siren } from 'lucide-react'
 import { useAuth } from '@/auth/AuthContext'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { VitalsBar } from '@/components/ui/VitalsBar'
 import { DISCORD_INVITE_URL } from '@/lib/supabase'
+import logo from '@/assets/logo.webp'
 
 const DENIAL_MESSAGES: Record<string, string> = {
   not_member: "Tu dois être membre du serveur Discord E.M.S. | LJ Life pour accéder au dashboard.",
@@ -31,13 +32,13 @@ export function Login() {
     <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-5 bg-[var(--bg)]">
       <ThemeToggle className="absolute top-5 right-5 z-20" />
 
-      <div className="relative z-10 flex flex-col items-center mb-8 animate-fade-up">
-        <div className="w-14 h-14 rounded-2xl bg-red/12 border border-red/25 flex items-center justify-center mb-4">
-          <Siren size={24} className="text-red" />
-        </div>
+      <div className="relative z-10 flex flex-col items-center mb-6 animate-fade-up">
+        <img src={logo} alt="EMS" className="w-20 h-20 rounded-full object-cover mb-4" />
         <h1 className="font-display font-black text-2xl text-neon-red">EMS Dashboard</h1>
         <p className="text-[var(--ink)]/40 text-sm mt-1">Connexion réservée au personnel médical</p>
       </div>
+
+      <VitalsBar className="relative z-10 w-full max-w-sm mb-6" />
 
       <Card className="relative z-10 w-full max-w-sm p-7 flex flex-col items-center gap-5" delay={0.15}>
         <p className="text-[var(--ink)]/50 text-xs text-center leading-relaxed">

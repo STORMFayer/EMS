@@ -66,6 +66,17 @@ export function isDirection(role: StaffRole | undefined | null) {
   return !!role && DIRECTION_ROLES.includes(role)
 }
 
+// StaffRole is declared in hierarchy order (Directeur down to Membre), so its
+// declaration order doubles as a rank table for "is this role senior to X".
+const ROLE_ORDER = Object.keys(ROLE_LABELS) as StaffRole[]
+const CHIRURGIEN_RANK = ROLE_ORDER.indexOf('chirurgien')
+
+export function isAboveChirurgien(role: StaffRole | undefined | null) {
+  if (!role) return false
+  const rank = ROLE_ORDER.indexOf(role)
+  return rank >= 0 && rank < CHIRURGIEN_RANK
+}
+
 export interface Staff {
   id: string
   discord_id: string | null
@@ -80,10 +91,16 @@ export interface Staff {
 
 export type EmergencyCode = '1' | '2' | '3'
 
-export const CODE_LABELS: Record<EmergencyCode, string> = {
-  '1': 'Code 1 · Routine',
-  '2': 'Code 2 · Urgent',
-  '3': 'Code 3 · Feux & sirènes',
+export interface EmergencyCodeRow {
+  code: EmergencyCode
+  label: string
+  position: number
+}
+
+export interface InterventionShortcut {
+  id: number
+  label: string
+  position: number
 }
 
 export interface Unit {
@@ -113,17 +130,6 @@ export interface Shift {
   created_at: string
 }
 
-export const INTERVENTION_SHORTCUTS = [
-  'M.A.R.U.',
-  'A.S.G.',
-  'M.R.G.',
-  'D.W.B.',
-  'Don du sang',
-  'Superviseur (M.T.T.)',
-  'G.O.P.S.',
-  'P.S.S.',
-]
-
 export function slugify(label: string) {
   return label
     .toLowerCase()
@@ -149,66 +155,6 @@ export const ABSENCE_STATUS_LABELS: Record<AbsenceStatus, string> = {
   en_attente: 'En attente',
   validee: 'Validée',
   refusee: 'Refusée',
-}
-
-export type StockItemKey =
-  | 'medicaments'
-  | 'methadone'
-  | 'trousse_de_soin'
-  | 'pince_a_epiler'
-  | 'creme_brulures'
-  | 'poche_de_glace'
-  | 'sedatif'
-  | 'kit_de_suture'
-  | 'bandage'
-  | 'vicodin_5mg'
-  | 'morphine_30mg'
-  | 'percocet_5mg'
-  | 'percocet_10mg'
-  | 'percocet_30mg'
-  | 'defibrillateur'
-  | 'morceaux_de_tissus'
-  | 'produit_chimique'
-  | 'kit_de_nettoyage'
-  | 'kit_de_reparation'
-
-export const STOCK_ITEM_LABELS: Record<StockItemKey, string> = {
-  medicaments: 'Medicaments',
-  methadone: 'Méthadone',
-  trousse_de_soin: 'Trousse de soin',
-  pince_a_epiler: 'Pince à épiler',
-  creme_brulures: 'Crème pour brûlures',
-  poche_de_glace: 'Poche de glace',
-  sedatif: 'Sédatif',
-  kit_de_suture: 'Kit de suture',
-  bandage: 'Bandage',
-  vicodin_5mg: 'Vicodin 5Mg',
-  morphine_30mg: 'Morphine 30mg',
-  percocet_5mg: 'Percocet 5mg',
-  percocet_10mg: 'Percocet 10mg',
-  percocet_30mg: 'Percocet 30mg',
-  defibrillateur: 'Défibrilateur',
-  morceaux_de_tissus: 'Morceaux de tissus',
-  produit_chimique: 'Produit Chimique',
-  kit_de_nettoyage: 'Kit de nettoyage',
-  kit_de_reparation: 'Kit de réparation',
-}
-
-export type StockMovementSource = 'registre_depot' | 'registre_retrait'
-
-export interface StockMovement {
-  id: number
-  staff_id: string
-  item_key: StockItemKey
-  delta: number
-  source: StockMovementSource
-  lieu: string
-  created_at: string
-}
-
-export interface StockRow {
-  item_key: StockItemKey
-  quantity: number
 }
 
 export interface PrestationType {
@@ -243,15 +189,6 @@ export interface Appointment {
   type: AppointmentType
   title: string | null
   scheduled_at: string
-  created_at: string
-}
-
-export interface OpTemplate {
-  id: string
-  label: string
-  motif: string
-  procede: string
-  prescription: string
   created_at: string
 }
 

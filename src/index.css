@@ -41,6 +41,8 @@
   --tile-aide: #5b6bd8;
   --tile-historique: #64748b;
   --tile-gestion: #d1263b;
+  --tile-payes: #c2478a;
+  --tile-rdv: #1f8fce;
 }
 
 :root[data-theme="light"] {
@@ -110,6 +112,12 @@ body {
   color: var(--neon-red-color);
   text-shadow: var(--neon-red-shadow);
 }
+
+@keyframes ecg-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.animate-ecg-scroll { animation: ecg-scroll 4s linear infinite; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }

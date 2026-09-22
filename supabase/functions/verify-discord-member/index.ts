@@ -68,10 +68,14 @@ Deno.serve(async (req) => {
     const newRole = ranks[0]?.staff_role ?? 'membre'
 
     const meta = userData.user.user_metadata
+    // Prefer the per-server nickname (member.nick) over the global Discord
+    // display name: on this RP server nicknames are set to the character's
+    // "Prénom Nom", which is the identity staff actually want shown here.
+    const displayName: string | null = member.nick || meta.full_name || meta.name || null
     const { error: updateErr } = await admin.from('staff').update({
       role: newRole,
       discord_id: meta.provider_id ?? meta.sub ?? null,
-      full_name: meta.full_name ?? meta.name ?? 'Agent',
+      full_name: displayName ?? 'Agent',
       avatar_url: meta.avatar_url ?? null,
     }).eq('id', userData.user.id)
 

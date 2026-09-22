@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { useAuth } from '@/auth/AuthContext'
-import { supabase, STOCK_ITEM_LABELS, type Shift, type StockMovement, type Prestation, type PrestationType } from '@/lib/supabase'
+import { supabase, type Shift, type Prestation, type PrestationType } from '@/lib/supabase'
 import { Card } from '@/components/ui/Card'
 import { AnimatedList, AnimatedListItem } from '@/components/ui/AnimatedList'
 
@@ -16,7 +16,6 @@ export function HistoriqueTab({ staffId }: { staffId?: string }) {
   const { staff } = useAuth()
   const targetId = staffId ?? staff?.id
   const [shifts, setShifts] = useState<Shift[]>([])
-  const [movements, setMovements] = useState<StockMovement[]>([])
   const [prestations, setPrestations] = useState<Prestation[]>([])
   const [prestationTypes, setPrestationTypes] = useState<PrestationType[]>([])
 
@@ -30,15 +29,6 @@ export function HistoriqueTab({ staffId }: { staffId?: string }) {
       .limit(30)
       .then(({ data }) => {
         if (data) setShifts(data)
-      })
-    supabase
-      .from('stock_movements')
-      .select('*')
-      .eq('staff_id', targetId)
-      .order('created_at', { ascending: false })
-      .limit(50)
-      .then(({ data }) => {
-        if (data) setMovements(data)
       })
     supabase
       .from('prestations')
@@ -59,7 +49,6 @@ export function HistoriqueTab({ staffId }: { staffId?: string }) {
 
   const enCours = shifts.filter((s) => !s.ended_at)
   const finis = shifts.filter((s) => s.ended_at)
-  const registre = movements.filter((m) => m.source === 'registre_depot' || m.source === 'registre_retrait')
   const prestationLabel = (id: string) => prestationTypes.find((t) => t.id === id)?.label ?? id
 
   return (
@@ -82,16 +71,7 @@ export function HistoriqueTab({ staffId }: { staffId?: string }) {
         {finis.length === 0 && <Empty />}
       </HistorySection>
 
-      <HistorySection title="Registre" delay={0.1}>
-        {registre.map((m) => (
-          <AnimatedListItem key={m.id}>
-            {formatDateTime(m.created_at)} | {m.delta > 0 ? 'Dépôt' : 'Retrait'} {STOCK_ITEM_LABELS[m.item_key]} x{Math.abs(m.delta)} | {m.lieu}
-          </AnimatedListItem>
-        ))}
-        {registre.length === 0 && <Empty />}
-      </HistorySection>
-
-      <HistorySection title="Prestations" delay={0.15}>
+      <HistorySection title="Prestations" delay={0.1}>
         {prestations.map((p) => (
           <AnimatedListItem key={p.id}>
             {formatDateTime(p.created_at)} | {prestationLabel(p.prestation_type_id)} · {p.montant}$ {p.is_public ? '· Service public' : ''}

@@ -5,12 +5,12 @@ import {
   supabase,
   ROLE_LABELS,
   STATUS_LABELS,
-  CODE_LABELS,
-  INTERVENTION_SHORTCUTS,
   type Staff,
   type Unit,
   type DutyStatus,
   type EmergencyCode,
+  type EmergencyCodeRow,
+  type InterventionShortcut,
 } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -21,8 +21,6 @@ import { Select } from '@/components/ui/Select'
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber'
 import { AnimatedList, AnimatedListItem } from '@/components/ui/AnimatedList'
 import { cn } from '@/lib/utils'
-
-const CODE_KEYS: EmergencyCode[] = ['1', '2', '3']
 
 function teamLabel(count: number) {
   if (count <= 1) return 'Solo'
@@ -67,6 +65,10 @@ export function ServicesTab() {
   const [defibrillateur, setDefibrillateur] = useState(false)
   const [detailsDirty, setDetailsDirty] = useState(false)
 
+  const [codes, setCodes] = useState<EmergencyCodeRow[]>([])
+  const [shortcuts, setShortcuts] = useState<InterventionShortcut[]>([])
+  const codeLabel = (code: EmergencyCode) => codes.find((c) => c.code === code)?.label ?? `Code ${code}`
+
   const fetchAll = useCallback(async () => {
     const [{ data: staffData }, { data: unitData }] = await Promise.all([
       supabase.from('staff').select('*').order('full_name'),
@@ -74,6 +76,15 @@ export function ServicesTab() {
     ])
     if (staffData) setRoster(staffData)
     if (unitData) setUnits(unitData)
+  }, [])
+
+  useEffect(() => {
+    supabase.from('emergency_codes').select('*').order('position').then(({ data }) => {
+      if (data) setCodes(data)
+    })
+    supabase.from('intervention_shortcuts').select('*').order('position').then(({ data }) => {
+      if (data) setShortcuts(data)
+    })
   }, [])
 
   useEffect(() => {
@@ -300,17 +311,17 @@ export function ServicesTab() {
           <div className="mb-4">
             <p className="text-xs uppercase tracking-[1.5px] text-[var(--ink)]/40 font-semibold mb-1.5">Code d'urgence</p>
             <div className="flex gap-2">
-              {CODE_KEYS.map((code) => (
+              {codes.map((c) => (
                 <Button
-                  key={code}
+                  key={c.code}
                   type="button"
                   size="sm"
-                  variant={unitsById.get(staff.unit_id!)?.code === code ? 'red' : 'ghost'}
+                  variant={unitsById.get(staff.unit_id!)?.code === c.code ? 'red' : 'ghost'}
                   disabled={submitting}
-                  onClick={() => handleSetCode(code)}
+                  onClick={() => handleSetCode(c.code)}
                   className="flex-1"
                 >
-                  {CODE_LABELS[code]}
+                  {c.label}
                 </Button>
               ))}
             </div>
@@ -355,19 +366,19 @@ export function ServicesTab() {
             <div>
               <p className="text-xs uppercase tracking-[1.5px] text-[var(--ink)]/40 font-semibold mb-1.5">Interventions</p>
               <div className="flex flex-wrap gap-2">
-                {INTERVENTION_SHORTCUTS.map((label) => (
+                {shortcuts.map((s) => (
                   <button
-                    key={label}
+                    key={s.id}
                     type="button"
-                    onClick={() => applyShortcut(label)}
+                    onClick={() => applyShortcut(s.label)}
                     className={cn(
                       'rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer',
-                      commentaire === label
+                      commentaire === s.label
                         ? 'border-red/50 bg-red/10 text-neon-red'
                         : 'border-[var(--ink)]/10 bg-[var(--ink)]/[0.03] text-[var(--ink)]/60 hover:text-[var(--ink)] hover:bg-[var(--ink)]/[0.06]',
                     )}
                   >
-                    {label}
+                    {s.label}
                   </button>
                 ))}
               </div>
@@ -412,7 +423,7 @@ export function ServicesTab() {
                 <div className="flex items-center justify-between mb-1 gap-2 flex-wrap">
                   <p className="text-[var(--ink)] text-sm font-semibold">{unit.name}</p>
                   <div className="flex items-center gap-1.5">
-                    {unit.code && <Badge variant="red">{CODE_LABELS[unit.code]}</Badge>}
+                    {unit.code && <Badge variant="red">{codeLabel(unit.code)}</Badge>}
                     <Badge variant={STATUS_BADGE[unit.status]}>
                       {unit.status === 'en_service' && <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-status-pulse" />}
                       {STATUS_LABELS[unit.status]}

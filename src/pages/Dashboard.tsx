@@ -2,18 +2,18 @@ import { useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { LayoutGrid, LogOut } from 'lucide-react'
 import { useAuth } from '@/auth/AuthContext'
-import { ROLE_LABELS, isDirection } from '@/lib/supabase'
+import { ROLE_LABELS, isAboveChirurgien } from '@/lib/supabase'
 import { TILE_SECTIONS, type TabKey } from '@/lib/tiles'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { HomeTiles } from '@/components/ui/HomeTiles'
 import { SectionHeader } from '@/components/ui/SectionHeader'
+import { VitalsBar } from '@/components/ui/VitalsBar'
 import { cn } from '@/lib/utils'
+import logo from '@/assets/logo.webp'
 import { ServicesTab } from './app/ServicesTab'
 import { AbsenceTab } from './app/AbsenceTab'
-import { RegistreTab } from './app/RegistreTab'
 import { PrestationsTab } from './app/PrestationsTab'
 import { AgendaTab } from './app/AgendaTab'
-import { DossierMedicalTab } from './app/DossierMedicalTab'
 import { HistoriqueTab } from './app/HistoriqueTab'
 import { GestionTab } from './app/GestionTab'
 import { AideTab } from './app/AideTab'
@@ -21,10 +21,8 @@ import { AideTab } from './app/AideTab'
 const TAB_CONTENT: Record<TabKey, ReactNode> = {
   services: <ServicesTab />,
   absence: <AbsenceTab />,
-  registre: <RegistreTab />,
   prestations: <PrestationsTab />,
   agenda: <AgendaTab />,
-  dossier_medical: <DossierMedicalTab />,
   aide: <AideTab />,
   historique: <HistoriqueTab />,
   gestion: <GestionTab />,
@@ -42,12 +40,14 @@ export function Dashboard() {
     )
   }
 
-  const visibleTabs = TILE_SECTIONS.filter((s) => !s.direction || isDirection(staff.role)).map((s) => s.key)
+  const visibleTabs = TILE_SECTIONS.filter((s) => !s.seniorOnly || isAboveChirurgien(staff.role)).map((s) => s.key)
   const activeSection = view === 'home' ? null : TILE_SECTIONS.find((s) => s.key === view) ?? null
 
   return (
     <div className="min-h-screen flex bg-[var(--bg)]">
       <aside className="w-16 sm:w-20 shrink-0 flex flex-col items-center py-5 gap-4 bg-[var(--sidebar-bg)] border-r border-[var(--ink)]/8">
+        <img src={logo} alt="EMS" className="w-10 h-10 rounded-full object-cover" />
+
         <button
           type="button"
           onClick={() => setView('home')}
@@ -95,6 +95,7 @@ export function Dashboard() {
                 <h1 className="font-display font-black text-xl text-[var(--ink)]">Bonjour, {staff.full_name}</h1>
                 <p className="text-[var(--ink)]/40 text-sm">{ROLE_LABELS[staff.role]}</p>
               </div>
+              <VitalsBar />
               <HomeTiles tabs={visibleTabs} onSelect={(key) => setView(key)} />
             </motion.div>
           ) : (
