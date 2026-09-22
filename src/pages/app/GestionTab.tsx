@@ -11,6 +11,7 @@ import { TarifsSection } from './gestion/TarifsSection'
 import { CodesSection } from './gestion/CodesSection'
 import { AideSection } from './gestion/AideSection'
 import { PayesSection } from './gestion/PayesSection'
+import { ArchiveSection } from './gestion/ArchiveSection'
 import { RdvSection } from './gestion/RdvSection'
 import { HistoriqueSection } from './gestion/HistoriqueSection'
 
@@ -22,6 +23,7 @@ const SECTION_CONTENT: Record<GestionKey, ReactNode> = {
   codes: <CodesSection />,
   aide: <AideSection />,
   payes: <PayesSection />,
+  archive: <ArchiveSection />,
   rdv: <RdvSection />,
   historique: <HistoriqueSection />,
 }

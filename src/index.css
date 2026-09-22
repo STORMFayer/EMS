@@ -43,6 +43,7 @@
   --tile-gestion: #d1263b;
   --tile-payes: #c2478a;
   --tile-rdv: #1f8fce;
+  --tile-archive: #8b6f47;
 }
 
 :root[data-theme="light"] {

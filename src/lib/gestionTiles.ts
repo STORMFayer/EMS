@@ -8,10 +8,11 @@ import {
   Banknote,
   CalendarClock,
   History,
+  Archive,
   type LucideIcon,
 } from 'lucide-react'
 
-export type GestionKey = 'users' | 'services' | 'absences' | 'tarifs' | 'codes' | 'aide' | 'payes' | 'rdv' | 'historique'
+export type GestionKey = 'users' | 'services' | 'absences' | 'tarifs' | 'codes' | 'aide' | 'payes' | 'archive' | 'rdv' | 'historique'
 
 export interface GestionSection {
   key: GestionKey
@@ -29,6 +30,7 @@ export const GESTION_SECTIONS: GestionSection[] = [
   { key: 'codes', label: 'Codes & interventions', icon: SlidersHorizontal, color: 'var(--tile-dossier)', directionOnly: true },
   { key: 'aide', label: 'Aide', icon: HelpCircle, color: 'var(--tile-aide)' },
   { key: 'payes', label: 'Gestion des payes', icon: Banknote, color: 'var(--tile-payes)', directionOnly: true },
+  { key: 'archive', label: 'Archive', icon: Archive, color: 'var(--tile-archive)', directionOnly: true },
   { key: 'rdv', label: 'RDV', icon: CalendarClock, color: 'var(--tile-rdv)', directionOnly: true },
   { key: 'historique', label: 'Historique', icon: History, color: 'var(--tile-historique)', directionOnly: true },
 ]

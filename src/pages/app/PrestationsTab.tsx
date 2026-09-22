@@ -27,7 +27,7 @@ export function PrestationsTab() {
     if (!staff) return
     const [{ data: t }, { data: p }] = await Promise.all([
       supabase.from('prestation_types').select('*').order('label'),
-      supabase.from('prestations').select('*').eq('staff_id', staff.id).order('created_at', { ascending: false }).limit(30),
+      supabase.from('prestations').select('*').eq('staff_id', staff.id).is('archived_at', null).order('created_at', { ascending: false }).limit(30),
     ])
     if (t) setTypes(t)
     if (p) setMine(p)

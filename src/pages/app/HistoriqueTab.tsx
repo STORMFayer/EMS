@@ -25,6 +25,7 @@ export function HistoriqueTab({ staffId }: { staffId?: string }) {
       .from('shifts')
       .select('*')
       .eq('staff_id', targetId)
+      .is('archived_at', null)
       .order('started_at', { ascending: false })
       .limit(30)
       .then(({ data }) => {
@@ -34,6 +35,7 @@ export function HistoriqueTab({ staffId }: { staffId?: string }) {
       .from('prestations')
       .select('*')
       .eq('staff_id', targetId)
+      .is('archived_at', null)
       .order('created_at', { ascending: false })
       .limit(50)
       .then(({ data }) => {

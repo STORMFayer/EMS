@@ -128,6 +128,8 @@ export interface Shift {
   started_at: string
   ended_at: string | null
   created_at: string
+  archived_at: string | null
+  payout_id: number | null
 }
 
 export function slugify(label: string) {
@@ -172,6 +174,19 @@ export interface Prestation {
   is_public: boolean
   details: string | null
   created_at: string
+  archived_at: string | null
+  payout_id: number | null
+}
+
+export interface Payout {
+  id: number
+  staff_id: string
+  paid_by: string | null
+  services_count: number
+  prestations_count: number
+  prestations_total: number
+  commission: number
+  paid_at: string
 }
 
 export type AppointmentType = 'cas' | 'cappa' | 'visite_medicale' | 'autre'
