@@ -9,10 +9,22 @@ import {
   CalendarClock,
   History,
   Archive,
+  Car,
   type LucideIcon,
 } from 'lucide-react'
 
-export type GestionKey = 'users' | 'services' | 'absences' | 'tarifs' | 'codes' | 'aide' | 'payes' | 'archive' | 'rdv' | 'historique'
+export type GestionKey =
+  | 'users'
+  | 'services'
+  | 'absences'
+  | 'tarifs'
+  | 'codes'
+  | 'aide'
+  | 'payes'
+  | 'archive'
+  | 'rdv'
+  | 'vehicles'
+  | 'historique'
 
 export interface GestionSection {
   key: GestionKey
@@ -32,5 +44,6 @@ export const GESTION_SECTIONS: GestionSection[] = [
   { key: 'payes', label: 'Gestion des payes', icon: Banknote, color: 'var(--tile-payes)', directionOnly: true },
   { key: 'archive', label: 'Archive', icon: Archive, color: 'var(--tile-archive)', directionOnly: true },
   { key: 'rdv', label: 'RDV', icon: CalendarClock, color: 'var(--tile-rdv)', directionOnly: true },
+  { key: 'vehicles', label: 'Véhicules', icon: Car, color: 'var(--tile-vehicles)', directionOnly: true },
   { key: 'historique', label: 'Historique', icon: History, color: 'var(--tile-historique)', directionOnly: true },
 ]

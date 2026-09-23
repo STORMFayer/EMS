@@ -83,13 +83,28 @@ export interface Staff {
   full_name: string
   avatar_url: string | null
   role: StaffRole
+  sous_grade_id: string | null
+  affiliation_id: string | null
   status: DutyStatus
   shift_started_at: string | null
   unit_id: string | null
   created_at: string
 }
 
-export type EmergencyCode = '1' | '2' | '3'
+export interface SousGrade {
+  id: string
+  label: string
+  position: number
+}
+
+export interface Affiliation {
+  id: string
+  label: string
+  sous_grade_id: string | null
+  position: number
+}
+
+export type EmergencyCode = string
 
 export interface EmergencyCodeRow {
   code: EmergencyCode
@@ -163,7 +178,20 @@ export interface PrestationType {
   id: string
   label: string
   tarif: number
+  grade: StaffRole | null
+  sous_grade_id: string | null
+  affiliation_id: string | null
   created_at: string
+}
+
+export function staffMatchesEligibility(
+  staff: Pick<Staff, 'role' | 'sous_grade_id' | 'affiliation_id'>,
+  restriction: { grade: StaffRole | null; sous_grade_id: string | null; affiliation_id: string | null },
+) {
+  if (restriction.grade && staff.role !== restriction.grade) return false
+  if (restriction.sous_grade_id && staff.sous_grade_id !== restriction.sous_grade_id) return false
+  if (restriction.affiliation_id && staff.affiliation_id !== restriction.affiliation_id) return false
+  return true
 }
 
 export interface Prestation {
@@ -189,21 +217,27 @@ export interface Payout {
   paid_at: string
 }
 
-export type AppointmentType = 'cas' | 'cappa' | 'visite_medicale' | 'autre'
-
-export const APPOINTMENT_TYPE_LABELS: Record<AppointmentType, string> = {
-  cas: 'CAS',
-  cappa: 'CAPPA',
-  visite_medicale: 'Visite médicale',
-  autre: 'Autre',
+export interface AppointmentTypeRow {
+  id: string
+  label: string
+  position: number
 }
 
 export interface Appointment {
   id: number
   staff_id: string
-  type: AppointmentType
+  type: string
   title: string | null
   scheduled_at: string
+  created_at: string
+}
+
+export interface Vehicle {
+  id: number
+  name: string
+  grade: StaffRole | null
+  sous_grade_id: string | null
+  affiliation_id: string | null
   created_at: string
 }
 

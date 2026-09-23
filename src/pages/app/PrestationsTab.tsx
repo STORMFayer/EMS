@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '@/auth/AuthContext'
-import { supabase, type PrestationType, type Prestation } from '@/lib/supabase'
+import { supabase, staffMatchesEligibility, type PrestationType, type Prestation } from '@/lib/supabase'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
@@ -36,6 +36,8 @@ export function PrestationsTab() {
   useEffect(() => {
     fetchAll()
   }, [fetchAll])
+
+  const eligibleTypes = staff ? types.filter((t) => staffMatchesEligibility(staff, t)) : types
 
   async function handleSubmit() {
     if (!staff || !typeId || submitting) return
@@ -73,7 +75,7 @@ export function PrestationsTab() {
           <Field label="Type de soin">
             <Select value={typeId} onChange={(e) => setTypeId(e.target.value)}>
               <option value="">Choisir...</option>
-              {types.map((t) => (
+              {eligibleTypes.map((t) => (
                 <option key={t.id} value={t.id}>
                   {t.label} · {t.tarif}$
                 </option>

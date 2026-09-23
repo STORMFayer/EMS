@@ -13,6 +13,7 @@ import { AideSection } from './gestion/AideSection'
 import { PayesSection } from './gestion/PayesSection'
 import { ArchiveSection } from './gestion/ArchiveSection'
 import { RdvSection } from './gestion/RdvSection'
+import { VehiclesSection } from './gestion/VehiclesSection'
 import { HistoriqueSection } from './gestion/HistoriqueSection'
 
 const SECTION_CONTENT: Record<GestionKey, ReactNode> = {
@@ -25,19 +26,34 @@ const SECTION_CONTENT: Record<GestionKey, ReactNode> = {
   payes: <PayesSection />,
   archive: <ArchiveSection />,
   rdv: <RdvSection />,
+  vehicles: <VehiclesSection />,
   historique: <HistoriqueSection />,
+}
+
+const VIEW_STORAGE_KEY = 'ems-gestion-view'
+
+function getStoredView(): GestionKey | 'home' {
+  if (typeof window === 'undefined') return 'home'
+  const stored = window.localStorage.getItem(VIEW_STORAGE_KEY)
+  return (stored as GestionKey | 'home') || 'home'
 }
 
 export function GestionTab() {
   const { staff } = useAuth()
-  const [view, setView] = useState<GestionKey | 'home'>('home')
+  const [view, setViewState] = useState<GestionKey | 'home'>(getStoredView)
+
+  function setView(next: GestionKey | 'home') {
+    setViewState(next)
+    window.localStorage.setItem(VIEW_STORAGE_KEY, next)
+  }
 
   const sections = GESTION_SECTIONS.filter((s) => !s.directionOnly || isDirection(staff?.role))
-  const activeSection = view === 'home' ? null : sections.find((s) => s.key === view) ?? null
+  const effectiveView = view !== 'home' && !sections.some((s) => s.key === view) ? 'home' : view
+  const activeSection = effectiveView === 'home' ? null : sections.find((s) => s.key === effectiveView) ?? null
 
   return (
     <AnimatePresence mode="wait">
-      {view === 'home' ? (
+      {effectiveView === 'home' ? (
         <motion.div
           key="gestion-home"
           initial={{ opacity: 0, y: 10 }}
@@ -69,7 +85,7 @@ export function GestionTab() {
         </motion.div>
       ) : (
         <motion.div
-          key={view}
+          key={effectiveView}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
@@ -79,7 +95,7 @@ export function GestionTab() {
           {activeSection && (
             <SectionHeader label={activeSection.label} icon={activeSection.icon} color={activeSection.color} onBack={() => setView('home')} />
           )}
-          {SECTION_CONTENT[view]}
+          {SECTION_CONTENT[effectiveView]}
         </motion.div>
       )}
     </AnimatePresence>

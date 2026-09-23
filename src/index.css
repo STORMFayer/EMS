@@ -44,6 +44,7 @@
   --tile-payes: #c2478a;
   --tile-rdv: #1f8fce;
   --tile-archive: #8b6f47;
+  --tile-vehicles: #3a8f7a;
 }
 
 :root[data-theme="light"] {

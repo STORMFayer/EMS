@@ -9,6 +9,8 @@ import { AnimatedList, AnimatedListItem } from '@/components/ui/AnimatedList'
 export function CodesSection() {
   const [codes, setCodes] = useState<EmergencyCodeRow[]>([])
   const [codeEdits, setCodeEdits] = useState<Record<string, string>>({})
+  const [newCodeValue, setNewCodeValue] = useState('')
+  const [newCodeLabel, setNewCodeLabel] = useState('')
   const [shortcuts, setShortcuts] = useState<InterventionShortcut[]>([])
   const [shortcutEdits, setShortcutEdits] = useState<Record<number, string>>({})
   const [newShortcut, setNewShortcut] = useState('')
@@ -35,6 +37,19 @@ export function CodesSection() {
       delete next[code]
       return next
     })
+    await fetchAll()
+  }
+
+  async function deleteCode(code: string) {
+    await supabase.from('emergency_codes').delete().eq('code', code)
+    await fetchAll()
+  }
+
+  async function addCode() {
+    if (!newCodeValue.trim() || !newCodeLabel.trim()) return
+    await supabase.from('emergency_codes').insert({ code: newCodeValue.trim(), label: newCodeLabel.trim(), position: codes.length })
+    setNewCodeValue('')
+    setNewCodeLabel('')
     await fetchAll()
   }
 
@@ -66,7 +81,7 @@ export function CodesSection() {
     <div className="flex flex-col gap-6">
       <Card className="p-5">
         <h2 className="text-[var(--ink)] font-bold text-sm mb-4">Codes d'urgence</h2>
-        <AnimatedList className="flex flex-col gap-2">
+        <AnimatedList className="flex flex-col gap-2 mb-4">
           {codes.map((c) => (
             <AnimatedListItem key={c.code} className="flex items-center gap-2 rounded-lg border border-[var(--ink)]/8 bg-[var(--ink)]/[0.02] px-3 py-2">
               <span className="text-[var(--ink)]/50 text-xs w-16 shrink-0">Code {c.code}</span>
@@ -78,9 +93,18 @@ export function CodesSection() {
               <Button size="sm" variant="ghost" onClick={() => saveCode(c.code)}>
                 OK
               </Button>
+              <Button size="sm" variant="ghost" onClick={() => deleteCode(c.code)}>
+                <Trash2 size={13} />
+              </Button>
             </AnimatedListItem>
           ))}
+          {codes.length === 0 && <p className="text-[var(--ink)]/30 text-sm text-center py-4">Aucun code configuré.</p>}
         </AnimatedList>
+        <div className="flex gap-2">
+          <Input className="w-20" placeholder="Valeur" value={newCodeValue} onChange={(e) => setNewCodeValue(e.target.value)} />
+          <Input placeholder="Libellé (ex: Code 4 · Urgence vitale)" value={newCodeLabel} onChange={(e) => setNewCodeLabel(e.target.value)} />
+          <Button size="sm" onClick={addCode}>Ajouter</Button>
+        </div>
       </Card>
 
       <Card className="p-5" delay={0.06}>

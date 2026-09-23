@@ -11,6 +11,8 @@ import {
   type EmergencyCode,
   type EmergencyCodeRow,
   type InterventionShortcut,
+  type SousGrade,
+  type Affiliation,
 } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -69,6 +71,11 @@ export function ServicesTab() {
   const [shortcuts, setShortcuts] = useState<InterventionShortcut[]>([])
   const codeLabel = (code: EmergencyCode) => codes.find((c) => c.code === code)?.label ?? `Code ${code}`
 
+  const [sousGrades, setSousGrades] = useState<SousGrade[]>([])
+  const [affiliations, setAffiliations] = useState<Affiliation[]>([])
+  const sousGradeLabel = (id: string | null) => sousGrades.find((sg) => sg.id === id)?.label
+  const affiliationLabel = (id: string | null) => affiliations.find((a) => a.id === id)?.label
+
   const fetchAll = useCallback(async () => {
     const [{ data: staffData }, { data: unitData }] = await Promise.all([
       supabase.from('staff').select('*').order('full_name'),
@@ -84,6 +91,12 @@ export function ServicesTab() {
     })
     supabase.from('intervention_shortcuts').select('*').order('position').then(({ data }) => {
       if (data) setShortcuts(data)
+    })
+    supabase.from('sous_grades').select('*').order('position').then(({ data }) => {
+      if (data) setSousGrades(data)
+    })
+    supabase.from('affiliations').select('*').order('position').then(({ data }) => {
+      if (data) setAffiliations(data)
     })
   }, [])
 
@@ -470,6 +483,12 @@ export function ServicesTab() {
                   {member.unit_id && unitsById.get(member.unit_id) ? ` · ${unitsById.get(member.unit_id)!.name}` : ''}
                   {member.unit_id && unitsById.get(member.unit_id)?.vehicule ? ` · ${unitsById.get(member.unit_id)!.vehicule}` : ''}
                 </p>
+                {member.status !== 'hors_service' && (sousGradeLabel(member.sous_grade_id) || affiliationLabel(member.affiliation_id)) && (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {sousGradeLabel(member.sous_grade_id) && <Badge variant="cyan">{sousGradeLabel(member.sous_grade_id)}</Badge>}
+                    {affiliationLabel(member.affiliation_id) && <Badge variant="red">{affiliationLabel(member.affiliation_id)}</Badge>}
+                  </div>
+                )}
                 {member.unit_id && unitsById.get(member.unit_id)?.commentaire && (
                   <p className="text-[var(--ink)]/40 text-xs italic truncate">{unitsById.get(member.unit_id)!.commentaire}</p>
                 )}

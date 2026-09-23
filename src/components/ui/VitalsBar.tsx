@@ -17,31 +17,18 @@ function buildEcgPath() {
   return d
 }
 
+// Decorative backdrop only: a translucent red ECG trace meant to sit behind
+// other content (absolutely positioned by the caller), not a boxed widget.
 export function VitalsBar({ className }: { className?: string }) {
   const path = useMemo(buildEcgPath, [])
 
   return (
-    <div className={cn('relative h-14 rounded-2xl overflow-hidden bg-[#0a0f0d] border border-[var(--ink)]/10', className)}>
-      <div
-        className="absolute inset-0 opacity-[0.06]"
-        style={{
-          backgroundImage:
-            'linear-gradient(#3ddc84 1px, transparent 1px), linear-gradient(90deg, #3ddc84 1px, transparent 1px)',
-          backgroundSize: '18px 18px',
-        }}
-      />
-
-      <svg className="absolute inset-0 w-[200%] h-full animate-ecg-scroll" viewBox="0 0 1000 60" preserveAspectRatio="none">
-        <path d={path} fill="none" stroke="#3ddc84" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="drop-shadow-[0_0_4px_rgba(61,220,132,0.65)]" />
-      </svg>
-
-      <div className="relative z-10 h-full flex items-center justify-between px-4">
-        <span className="flex items-center gap-2 rounded-full bg-[#0a0f0d] pr-2">
-          <span className="w-2 h-2 rounded-full bg-[#3ddc84] animate-status-pulse" />
-          <span className="text-[#3ddc84] text-[11px] font-mono tracking-widest">SURVEILLANCE ACTIVE</span>
-        </span>
-        <span className="rounded-full bg-[#0a0f0d] pl-2 text-[#3ddc84] text-xs font-mono tabular-nums">72 BPM</span>
-      </div>
-    </div>
+    <svg
+      className={cn('w-[200%] h-full animate-ecg-scroll opacity-20 pointer-events-none', className)}
+      viewBox="0 0 1000 60"
+      preserveAspectRatio="none"
+    >
+      <path d={path} fill="none" stroke="#e11d2e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   )
 }

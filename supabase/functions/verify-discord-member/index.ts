@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
     const admin = createClient(supabaseUrl, serviceKey)
     const { data: roleMap, error: mapErr } = await admin
       .from('discord_role_map')
-      .select('role_id, staff_role, is_gate, priority')
+      .select('role_id, staff_role, is_gate, priority, sous_grade_id, affiliation_id')
       .in('role_id', roleIds.length > 0 ? roleIds : ['0'])
 
     if (mapErr) {
@@ -61,11 +61,14 @@ Deno.serve(async (req) => {
     const hasGate = (roleMap ?? []).some((r) => r.is_gate)
     if (!hasGate) return json({ authorized: false, reason: 'no_gate_role' })
 
-    const ranks = (roleMap ?? [])
-      .filter((r) => r.staff_role)
-      .sort((a, b) => (a.priority ?? 999) - (b.priority ?? 999))
+    const sorted = [...(roleMap ?? [])].sort((a, b) => (a.priority ?? 999) - (b.priority ?? 999))
 
-    const newRole = ranks[0]?.staff_role ?? 'membre'
+    const newRole = sorted.find((r) => r.staff_role)?.staff_role ?? 'membre'
+    // Sous-grade and affiliation are read the same way as the main grade:
+    // closest/highest-priority matching Discord role wins. Either can be
+    // absent (null) if the member has no matching role.
+    const newSousGrade = sorted.find((r) => r.sous_grade_id)?.sous_grade_id ?? null
+    const newAffiliation = sorted.find((r) => r.affiliation_id)?.affiliation_id ?? null
 
     const meta = userData.user.user_metadata
     // Prefer the per-server nickname (member.nick) over the global Discord
@@ -74,6 +77,8 @@ Deno.serve(async (req) => {
     const displayName: string | null = member.nick || meta.full_name || meta.name || null
     const { error: updateErr } = await admin.from('staff').update({
       role: newRole,
+      sous_grade_id: newSousGrade,
+      affiliation_id: newAffiliation,
       discord_id: meta.provider_id ?? meta.sub ?? null,
       full_name: displayName ?? 'Agent',
       avatar_url: meta.avatar_url ?? null,

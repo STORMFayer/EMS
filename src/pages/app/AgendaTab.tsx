@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Trash2 } from 'lucide-react'
 import { useAuth } from '@/auth/AuthContext'
-import { supabase, isDirection, APPOINTMENT_TYPE_LABELS, type Appointment, type AppointmentType, type Staff } from '@/lib/supabase'
+import { supabase, isDirection, type Appointment, type AppointmentTypeRow, type Staff } from '@/lib/supabase'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
@@ -10,15 +10,14 @@ import { Select } from '@/components/ui/Select'
 import { Badge } from '@/components/ui/Badge'
 import { AnimatedList, AnimatedListItem } from '@/components/ui/AnimatedList'
 
-const TYPE_KEYS = Object.keys(APPOINTMENT_TYPE_LABELS) as AppointmentType[]
-
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleDateString('fr-FR') + ' ' + new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
 }
 
 export function AgendaTab() {
   const { staff } = useAuth()
-  const [type, setType] = useState<AppointmentType>('cas')
+  const [types, setTypes] = useState<AppointmentTypeRow[]>([])
+  const [type, setType] = useState('')
   const [title, setTitle] = useState('')
   const [scheduledAt, setScheduledAt] = useState('')
   const [appointments, setAppointments] = useState<Appointment[]>([])
@@ -27,12 +26,17 @@ export function AgendaTab() {
   const [error, setError] = useState<string | null>(null)
 
   const fetchAll = useCallback(async () => {
-    const [{ data: a }, { data: s }] = await Promise.all([
+    const [{ data: a }, { data: s }, { data: t }] = await Promise.all([
       supabase.from('appointments').select('*').order('scheduled_at', { ascending: true }),
       supabase.from('staff').select('*'),
+      supabase.from('appointment_types').select('*').order('position'),
     ])
     if (a) setAppointments(a)
     if (s) setStaffList(s)
+    if (t) {
+      setTypes(t)
+      setType((current) => current || t[0]?.id || '')
+    }
   }, [])
 
   useEffect(() => {
@@ -47,7 +51,7 @@ export function AgendaTab() {
   }, [fetchAll])
 
   async function handleSubmit() {
-    if (!staff || submitting) return
+    if (!staff || submitting || !type) return
     if (!scheduledAt) {
       setError('Indique une date et une heure.')
       return
@@ -76,6 +80,7 @@ export function AgendaTab() {
   }
 
   const staffById = new Map(staffList.map((s) => [s.id, s]))
+  const typeLabel = (id: string) => types.find((t) => t.id === id)?.label ?? id
   const upcoming = appointments.filter((a) => new Date(a.scheduled_at).getTime() >= Date.now() - 3600_000)
 
   return (
@@ -85,10 +90,10 @@ export function AgendaTab() {
         {error && <p className="text-red-300 text-xs mb-3 animate-pop-in">{error}</p>}
         <div className="grid sm:grid-cols-2 gap-4 mb-4">
           <Field label="Type">
-            <Select value={type} onChange={(e) => setType(e.target.value as AppointmentType)}>
-              {TYPE_KEYS.map((key) => (
-                <option key={key} value={key}>
-                  {APPOINTMENT_TYPE_LABELS[key]}
+            <Select value={type} onChange={(e) => setType(e.target.value)}>
+              {types.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.label}
                 </option>
               ))}
             </Select>
@@ -102,7 +107,7 @@ export function AgendaTab() {
             <Input placeholder="ex: RDV avec M. Dupont" value={title} onChange={(e) => setTitle(e.target.value)} />
           </Field>
         </div>
-        <Button variant="red" className="w-full" disabled={submitting} onClick={handleSubmit}>
+        <Button variant="red" className="w-full" disabled={submitting || !type} onClick={handleSubmit}>
           Ajouter au calendrier
         </Button>
       </Card>
@@ -119,7 +124,7 @@ export function AgendaTab() {
               >
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <Badge variant="cyan">{APPOINTMENT_TYPE_LABELS[a.type]}</Badge>
+                    <Badge variant="cyan">{typeLabel(a.type)}</Badge>
                     <p className="text-[var(--ink)] text-sm font-semibold">{formatDateTime(a.scheduled_at)}</p>
                   </div>
                   <p className="text-[var(--ink)]/40 text-xs">

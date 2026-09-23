@@ -28,9 +28,22 @@ const TAB_CONTENT: Record<TabKey, ReactNode> = {
   gestion: <GestionTab />,
 }
 
+const VIEW_STORAGE_KEY = 'ems-dashboard-view'
+
+function getStoredView(): TabKey | 'home' {
+  if (typeof window === 'undefined') return 'home'
+  const stored = window.localStorage.getItem(VIEW_STORAGE_KEY)
+  return (stored as TabKey | 'home') || 'home'
+}
+
 export function Dashboard() {
   const { staff, signOut } = useAuth()
-  const [view, setView] = useState<TabKey | 'home'>('home')
+  const [view, setViewState] = useState<TabKey | 'home'>(getStoredView)
+
+  function setView(next: TabKey | 'home') {
+    setViewState(next)
+    window.localStorage.setItem(VIEW_STORAGE_KEY, next)
+  }
 
   if (!staff) {
     return (
@@ -41,7 +54,8 @@ export function Dashboard() {
   }
 
   const visibleTabs = TILE_SECTIONS.filter((s) => !s.seniorOnly || isAboveChirurgien(staff.role)).map((s) => s.key)
-  const activeSection = view === 'home' ? null : TILE_SECTIONS.find((s) => s.key === view) ?? null
+  const effectiveView = view !== 'home' && !visibleTabs.includes(view) ? 'home' : view
+  const activeSection = effectiveView === 'home' ? null : TILE_SECTIONS.find((s) => s.key === effectiveView) ?? null
 
   return (
     <div className="min-h-screen flex bg-[var(--bg)]">
@@ -54,7 +68,7 @@ export function Dashboard() {
           aria-label="Accueil"
           className={cn(
             'w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer transition-colors',
-            view === 'home' ? 'bg-red text-white' : 'bg-[var(--ink)]/5 text-[var(--ink)]/60 hover:bg-[var(--ink)]/10 hover:text-[var(--ink)]',
+            effectiveView === 'home' ? 'bg-red text-white' : 'bg-[var(--ink)]/5 text-[var(--ink)]/60 hover:bg-[var(--ink)]/10 hover:text-[var(--ink)]',
           )}
         >
           <LayoutGrid size={18} />
@@ -82,7 +96,7 @@ export function Dashboard() {
 
       <main className="flex-1 min-w-0 px-4 py-6 sm:px-8 sm:py-8 flex flex-col gap-6 overflow-y-auto">
         <AnimatePresence mode="wait">
-          {view === 'home' ? (
+          {effectiveView === 'home' ? (
             <motion.div
               key="home"
               initial={{ opacity: 0, y: 10 }}
@@ -91,16 +105,20 @@ export function Dashboard() {
               transition={{ duration: 0.25 }}
               className="flex flex-col gap-6 max-w-5xl w-full mx-auto"
             >
-              <div>
-                <h1 className="font-display font-black text-xl text-[var(--ink)]">Bonjour, {staff.full_name}</h1>
-                <p className="text-[var(--ink)]/40 text-sm">{ROLE_LABELS[staff.role]}</p>
+              <div className="relative overflow-hidden rounded-2xl">
+                <div className="absolute inset-0 h-full">
+                  <VitalsBar />
+                </div>
+                <div className="relative z-10 py-2">
+                  <h1 className="font-display font-black text-xl text-[var(--ink)]">Bonjour, {staff.full_name}</h1>
+                  <p className="text-[var(--ink)]/40 text-sm">{ROLE_LABELS[staff.role]}</p>
+                </div>
               </div>
-              <VitalsBar />
               <HomeTiles tabs={visibleTabs} onSelect={(key) => setView(key)} />
             </motion.div>
           ) : (
             <motion.div
-              key={view}
+              key={effectiveView}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
@@ -115,7 +133,7 @@ export function Dashboard() {
                   onBack={() => setView('home')}
                 />
               )}
-              {TAB_CONTENT[view]}
+              {TAB_CONTENT[effectiveView]}
             </motion.div>
           )}
         </AnimatePresence>
