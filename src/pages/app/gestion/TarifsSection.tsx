@@ -21,10 +21,12 @@ export function TarifsSection() {
   const [sousGrades, setSousGrades] = useState<SousGrade[]>([])
   const [affiliations, setAffiliations] = useState<Affiliation[]>([])
   const [tarifEdits, setTarifEdits] = useState<Record<string, number>>({})
+  const [tarifPublicEdits, setTarifPublicEdits] = useState<Record<string, number>>({})
   const [labelEdits, setLabelEdits] = useState<Record<string, string>>({})
   const [eligEdits, setEligEdits] = useState<Record<string, Eligibility>>({})
   const [newTypeLabel, setNewTypeLabel] = useState('')
   const [newTypeTarif, setNewTypeTarif] = useState(0)
+  const [newTypeTarifPublic, setNewTypeTarifPublic] = useState(0)
   const [newElig, setNewElig] = useState<Eligibility>(EMPTY)
 
   const fetchAll = useCallback(async () => {
@@ -48,10 +50,12 @@ export function TarifsSection() {
 
   async function saveTarif(id: string) {
     const tarif = tarifEdits[id]
+    const tarifPublic = tarifPublicEdits[id]
     const label = labelEdits[id]
     const elig = eligEdits[id]
     const patch: Record<string, unknown> = {}
     if (tarif !== undefined) patch.tarif = tarif
+    if (tarifPublic !== undefined) patch.tarif_public = tarifPublic
     if (label !== undefined) patch.label = label
     if (elig !== undefined) {
       patch.grade = elig.grade || null
@@ -61,6 +65,11 @@ export function TarifsSection() {
     if (Object.keys(patch).length === 0) return
     await supabase.from('prestation_types').update(patch).eq('id', id)
     setTarifEdits((prev) => {
+      const next = { ...prev }
+      delete next[id]
+      return next
+    })
+    setTarifPublicEdits((prev) => {
       const next = { ...prev }
       delete next[id]
       return next
@@ -85,12 +94,14 @@ export function TarifsSection() {
       id,
       label: newTypeLabel.trim(),
       tarif: newTypeTarif,
+      tarif_public: newTypeTarifPublic || null,
       grade: newElig.grade || null,
       sous_grade_id: newElig.sous_grade_id || null,
       affiliation_id: newElig.affiliation_id || null,
     })
     setNewTypeLabel('')
     setNewTypeTarif(0)
+    setNewTypeTarifPublic(0)
     setNewElig(EMPTY)
     await fetchAll()
   }
@@ -110,13 +121,23 @@ export function TarifsSection() {
               <Input
                 type="number"
                 className="w-24"
+                title="Tarif normal"
                 value={tarifEdits[t.id] ?? t.tarif}
                 onChange={(e) => setTarifEdits((prev) => ({ ...prev, [t.id]: Number(e.target.value) }))}
+              />
+              <Input
+                type="number"
+                className="w-24"
+                title="Tarif service public"
+                placeholder="Prix public"
+                value={tarifPublicEdits[t.id] ?? t.tarif_public ?? ''}
+                onChange={(e) => setTarifPublicEdits((prev) => ({ ...prev, [t.id]: Number(e.target.value) }))}
               />
               <Button size="sm" variant="ghost" onClick={() => saveTarif(t.id)}>
                 OK
               </Button>
             </div>
+            <p className="text-[var(--ink)]/30 text-[11px]">Tarif normal · Tarif service public</p>
             <EligibilitySelector
               value={eligOf(t)}
               onChange={(next) => setEligEdits((prev) => ({ ...prev, [t.id]: next }))}
@@ -128,9 +149,10 @@ export function TarifsSection() {
       </AnimatedList>
       <div className="rounded-lg border border-[var(--ink)]/8 bg-[var(--ink)]/[0.02] p-3 flex flex-col gap-3">
         <p className="text-[var(--ink)]/40 text-xs uppercase tracking-[1.5px] font-semibold">Nouveau type</p>
-        <div className="grid sm:grid-cols-2 gap-2">
+        <div className="grid sm:grid-cols-3 gap-2">
           <Input placeholder="Libellé (ex: Soins)" value={newTypeLabel} onChange={(e) => setNewTypeLabel(e.target.value)} />
-          <Input type="number" placeholder="Tarif" value={newTypeTarif} onChange={(e) => setNewTypeTarif(Number(e.target.value))} />
+          <Input type="number" placeholder="Tarif normal" value={newTypeTarif} onChange={(e) => setNewTypeTarif(Number(e.target.value))} />
+          <Input type="number" placeholder="Tarif service public" value={newTypeTarifPublic} onChange={(e) => setNewTypeTarifPublic(Number(e.target.value))} />
         </div>
         <EligibilitySelector value={newElig} onChange={setNewElig} sousGrades={sousGrades} affiliations={affiliations} />
         <Button size="sm" onClick={addPrestationType}>Ajouter</Button>

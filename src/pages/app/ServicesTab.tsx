@@ -60,7 +60,6 @@ export function ServicesTab() {
 
   const [newUnitName, setNewUnitName] = useState('')
   const [newUnitLieu, setNewUnitLieu] = useState('')
-  const [joinUnitId, setJoinUnitId] = useState('')
 
   const [vehicule, setVehicule] = useState('')
   const [commentaire, setCommentaire] = useState('')
@@ -165,13 +164,9 @@ export function ServicesTab() {
         unitId = data.id
         unitName = data.name
         unitSector = data.sector
-      } else if (joinUnitId) {
-        unitId = joinUnitId
-        unitName = unitsById.get(joinUnitId)?.name ?? null
-        unitSector = unitsById.get(joinUnitId)?.sector ?? null
       }
 
-      if (!unitId) throw new Error("Choisis un nom d'unité ou une unité existante.")
+      if (!unitId) throw new Error("Donne un nom d'unité, ou rejoins un service actif ci-dessous.")
 
       const isNewShift = !staff.shift_started_at
       const startedAt = staff.shift_started_at ?? new Date().toISOString()
@@ -200,7 +195,44 @@ export function ServicesTab() {
 
       setNewUnitName('')
       setNewUnitLieu('')
-      setJoinUnitId('')
+      await Promise.all([refreshStaff(), fetchAll()])
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleJoinUnit(unit: Unit) {
+    if (!staff || submitting) return
+    setSubmitting(true)
+    setError(null)
+    try {
+      const isNewShift = !staff.shift_started_at
+      const startedAt = staff.shift_started_at ?? new Date().toISOString()
+
+      const { error: staffErr } = await supabase
+        .from('staff')
+        .update({ unit_id: unit.id, status: 'en_service', shift_started_at: startedAt })
+        .eq('id', staff.id)
+      if (staffErr) throw new Error(staffErr.message)
+
+      if (isNewShift) {
+        await supabase.from('shifts').insert({
+          staff_id: staff.id,
+          unit_name: unit.name,
+          sector: unit.sector,
+          status_label: 'en_service',
+          started_at: startedAt,
+        })
+      } else {
+        await supabase
+          .from('shifts')
+          .update({ status_label: 'en_service', unit_name: unit.name, sector: unit.sector })
+          .eq('staff_id', staff.id)
+          .is('ended_at', null)
+      }
+
       await Promise.all([refreshStaff(), fetchAll()])
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
@@ -285,34 +317,12 @@ export function ServicesTab() {
           </Button>
         </div>
         {error && <p className="text-red-300 text-xs mb-3">{error}</p>}
-        <div className="grid sm:grid-cols-2 gap-4 mb-4">
+        <div className="mb-4">
           <Field label="Nom d'unité (créer)">
-            <Input
-              placeholder="Unité Alpha"
-              value={newUnitName}
-              onChange={(e) => {
-                setNewUnitName(e.target.value)
-                if (e.target.value) setJoinUnitId('')
-              }}
-            />
-          </Field>
-          <Field label="Rejoindre une unité existante">
-            <Select
-              value={joinUnitId}
-              onChange={(e) => {
-                setJoinUnitId(e.target.value)
-                if (e.target.value) setNewUnitName('')
-              }}
-            >
-              <option value="">— unités —</option>
-              {activeUnits.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
-                </option>
-              ))}
-            </Select>
+            <Input placeholder="Unité Alpha" value={newUnitName} onChange={(e) => setNewUnitName(e.target.value)} />
           </Field>
         </div>
+        <p className="text-[var(--ink)]/30 text-xs mb-4">Pour rejoindre un service déjà actif, utilise le bouton "Rejoindre" ci-dessous plutôt que de créer une unité.</p>
         {newUnitName.trim() && (
           <div className="mb-4">
             <Field label="Lieu">
@@ -441,6 +451,11 @@ export function ServicesTab() {
                       {unit.status === 'en_service' && <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-status-pulse" />}
                       {STATUS_LABELS[unit.status]}
                     </Badge>
+                    {staff.unit_id !== unit.id && (
+                      <Button size="sm" variant="green" disabled={submitting} onClick={() => handleJoinUnit(unit)}>
+                        Rejoindre
+                      </Button>
+                    )}
                   </div>
                 </div>
                 <p className="text-[var(--ink)]/40 text-xs mb-1">
@@ -449,10 +464,20 @@ export function ServicesTab() {
                   {unit.vehicule ? ` · Véhicule : ${unit.vehicule}` : ''}
                 </p>
                 {unit.commentaire && <p className="text-[var(--ink)]/50 text-xs mb-1 italic">{unit.commentaire}</p>}
-                <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <p className="text-[var(--ink)]/40 text-xs">{members.map((s) => s.full_name).join(', ')}</p>
-                  {unit.defibrillateur && <Badge variant="cyan">Défibrillateur</Badge>}
+                <div className="flex flex-col gap-1">
+                  {members.map((s) => (
+                    <div key={s.id} className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[var(--ink)]/70 text-xs font-medium">{s.full_name}</span>
+                      {sousGradeLabel(s.sous_grade_id) && <Badge variant="cyan">{sousGradeLabel(s.sous_grade_id)}</Badge>}
+                      {affiliationLabel(s.affiliation_id) && <Badge variant="red">{affiliationLabel(s.affiliation_id)}</Badge>}
+                    </div>
+                  ))}
                 </div>
+                {unit.defibrillateur && (
+                  <div className="mt-1">
+                    <Badge variant="cyan">Défibrillateur</Badge>
+                  </div>
+                )}
               </AnimatedListItem>
             )
           })}

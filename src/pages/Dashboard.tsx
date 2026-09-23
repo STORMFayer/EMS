@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { LayoutGrid, LogOut } from 'lucide-react'
+import { LayoutGrid, LogOut, RefreshCw } from 'lucide-react'
 import { useAuth } from '@/auth/AuthContext'
 import { ROLE_LABELS, isAboveChirurgien } from '@/lib/supabase'
 import { TILE_SECTIONS, type TabKey } from '@/lib/tiles'
@@ -37,8 +37,18 @@ function getStoredView(): TabKey | 'home' {
 }
 
 export function Dashboard() {
-  const { staff, signOut } = useAuth()
+  const { staff, signOut, signInWithDiscord } = useAuth()
   const [view, setViewState] = useState<TabKey | 'home'>(getStoredView)
+  const [resyncing, setResyncing] = useState(false)
+
+  async function handleResync() {
+    setResyncing(true)
+    // Re-runs the Discord OAuth flow. Since consent is already granted this
+    // round-trips almost instantly and comes back with a fresh provider
+    // token, letting the edge function re-read the current grade/sous-grade/
+    // affiliation from Discord (that's the only moment it's available).
+    await signInWithDiscord()
+  }
 
   function setView(next: TabKey | 'home') {
     setViewState(next)
@@ -81,6 +91,17 @@ export function Dashboard() {
         ) : (
           <div className="w-9 h-9 rounded-full bg-[var(--ink)]/10 border border-[var(--ink)]/15" />
         )}
+
+        <button
+          type="button"
+          onClick={handleResync}
+          disabled={resyncing}
+          aria-label="Actualiser mon profil Discord"
+          title="Actualiser mon grade/sous-grade/affiliation depuis Discord"
+          className="w-10 h-10 rounded-xl bg-[var(--ink)]/5 text-[var(--ink)]/60 hover:bg-[var(--ink)]/10 hover:text-[var(--ink)] transition-colors flex items-center justify-center cursor-pointer disabled:opacity-50"
+        >
+          <RefreshCw size={16} className={resyncing ? 'animate-spin' : ''} />
+        </button>
 
         <ThemeToggle />
 

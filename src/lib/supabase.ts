@@ -178,6 +178,7 @@ export interface PrestationType {
   id: string
   label: string
   tarif: number
+  tarif_public: number | null
   grade: StaffRole | null
   sous_grade_id: string | null
   affiliation_id: string | null

@@ -39,6 +39,9 @@ export function PrestationsTab() {
 
   const eligibleTypes = staff ? types.filter((t) => staffMatchesEligibility(staff, t)) : types
 
+  const selectedType = types.find((t) => t.id === typeId)
+  const applicablePrice = selectedType ? (isPublic ? selectedType.tarif_public ?? 0 : selectedType.tarif) : null
+
   async function handleSubmit() {
     if (!staff || !typeId || submitting) return
     const type = types.find((t) => t.id === typeId)
@@ -49,7 +52,7 @@ export function PrestationsTab() {
     const { error: err } = await supabase.from('prestations').insert({
       staff_id: staff.id,
       prestation_type_id: typeId,
-      montant: type.tarif,
+      montant: isPublic ? type.tarif_public ?? 0 : type.tarif,
       is_public: isPublic,
       details: details.trim() || null,
     })
@@ -83,10 +86,15 @@ export function PrestationsTab() {
             </Select>
           </Field>
         </div>
-        <label className="flex items-center gap-2 text-sm text-[var(--ink)]/70 mb-4 cursor-pointer">
+        <label className="flex items-center gap-2 text-sm text-[var(--ink)]/70 mb-1 cursor-pointer">
           <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} className="accent-red" />
           Service public (gratuit / pris en charge)
         </label>
+        {selectedType && (
+          <p className="text-[var(--ink)]/40 text-xs mb-4">
+            Prix applicable{isPublic ? ' (service public)' : ''} : <span className="text-[var(--ink)] font-semibold">{applicablePrice}$</span>
+          </p>
+        )}
         <div className="mb-4">
           <Field label="Détails">
             <Textarea rows={3} placeholder="Détails de la prestation..." value={details} onChange={(e) => setDetails(e.target.value)} />
