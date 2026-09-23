@@ -4,6 +4,7 @@ import { useAuth } from '@/auth/AuthContext'
 import { isDirection } from '@/lib/supabase'
 import { GESTION_SECTIONS, type GestionKey } from '@/lib/gestionTiles'
 import { SectionHeader } from '@/components/ui/SectionHeader'
+import { Tile } from '@/components/ui/Tile'
 import { UsersSection } from './gestion/UsersSection'
 import { ServicesSection } from './gestion/ServicesSection'
 import { AbsencesSection } from './gestion/AbsencesSection'
@@ -62,26 +63,9 @@ export function GestionTab() {
           transition={{ duration: 0.25 }}
           className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4"
         >
-          {sections.map((s, i) => {
-            const Icon = s.icon
-            return (
-              <motion.button
-                key={s.key}
-                type="button"
-                onClick={() => setView(s.key)}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 26, delay: i * 0.04 }}
-                whileHover={{ y: -3, scale: 1.015 }}
-                whileTap={{ scale: 0.98 }}
-                className="rounded-2xl p-4 flex flex-col justify-between text-left text-white cursor-pointer min-h-[110px] sm:min-h-[130px]"
-                style={{ background: s.color }}
-              >
-                <Icon size={20} />
-                <p className="text-xs font-semibold opacity-90 mt-1">{s.label}</p>
-              </motion.button>
-            )
-          })}
+          {sections.map((s, i) => (
+            <Tile key={s.key} icon={s.icon} label={s.label} color={s.color} delay={i * 0.04} onClick={() => setView(s.key)} />
+          ))}
         </motion.div>
       ) : (
         <motion.div
