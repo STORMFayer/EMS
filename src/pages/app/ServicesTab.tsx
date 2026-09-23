@@ -468,6 +468,7 @@ export function ServicesTab() {
                   {members.map((s) => (
                     <div key={s.id} className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-[var(--ink)]/70 text-xs font-medium">{s.full_name}</span>
+                      <Badge variant="gray">{ROLE_LABELS[s.role]}</Badge>
                       {sousGradeLabel(s.sous_grade_id) && <Badge variant="cyan">{sousGradeLabel(s.sous_grade_id)}</Badge>}
                       {affiliationLabel(s.affiliation_id) && <Badge variant="red">{affiliationLabel(s.affiliation_id)}</Badge>}
                     </div>
