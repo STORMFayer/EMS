@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { LayoutGrid, LogOut, RefreshCw } from 'lucide-react'
 import { useAuth } from '@/auth/AuthContext'
-import { ROLE_LABELS, isAboveChirurgien } from '@/lib/supabase'
+import { displayRoleLabel, isAboveChirurgien } from '@/lib/supabase'
 import { TILE_SECTIONS, type TabKey } from '@/lib/tiles'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { HomeTiles } from '@/components/ui/HomeTiles'
@@ -132,7 +132,7 @@ export function Dashboard() {
                 </div>
                 <div className="relative z-10 py-2">
                   <h1 className="font-display font-black text-xl text-[var(--ink)]">Bonjour, {staff.full_name}</h1>
-                  <p className="text-[var(--ink)]/40 text-sm">{ROLE_LABELS[staff.role]}</p>
+                  {displayRoleLabel(staff.role) && <p className="text-[var(--ink)]/40 text-sm">{displayRoleLabel(staff.role)}</p>}
                 </div>
               </div>
               <HomeTiles tabs={visibleTabs} onSelect={(key) => setView(key)} />

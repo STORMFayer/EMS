@@ -38,7 +38,15 @@ Deno.serve(async (req) => {
       headers: { Authorization: `Bearer ${providerToken}` },
     })
 
-    if (memberRes.status === 404) return json({ authorized: false, reason: 'not_member' })
+    const admin = createClient(supabaseUrl, serviceKey)
+
+    if (memberRes.status === 404) {
+      // No longer in the Discord server at all: deactivate rather than
+      // delete, so their shift/prestation/payout history stays intact but
+      // they drop out of the active roster (Effectif).
+      await admin.from('staff').update({ active: false, status: 'hors_service', unit_id: null, shift_started_at: null }).eq('id', userData.user.id)
+      return json({ authorized: false, reason: 'not_member' })
+    }
     if (!memberRes.ok) {
       console.error('Discord member lookup failed', memberRes.status, await memberRes.text())
       return json({ authorized: false, reason: 'discord_error' })
@@ -47,7 +55,6 @@ Deno.serve(async (req) => {
     const member = await memberRes.json()
     const roleIds: string[] = member.roles ?? []
 
-    const admin = createClient(supabaseUrl, serviceKey)
     const { data: roleMap, error: mapErr } = await admin
       .from('discord_role_map')
       .select('role_id, staff_role, is_gate, priority, sous_grade_id, affiliation_id')
@@ -59,7 +66,12 @@ Deno.serve(async (req) => {
     }
 
     const hasGate = (roleMap ?? []).some((r) => r.is_gate)
-    if (!hasGate) return json({ authorized: false, reason: 'no_gate_role' })
+    if (!hasGate) {
+      // Still in the server but the E.M.S. role was removed: same
+      // deactivation as leaving the server outright.
+      await admin.from('staff').update({ active: false, status: 'hors_service', unit_id: null, shift_started_at: null }).eq('id', userData.user.id)
+      return json({ authorized: false, reason: 'no_gate_role' })
+    }
 
     const sorted = [...(roleMap ?? [])].sort((a, b) => (a.priority ?? 999) - (b.priority ?? 999))
 
@@ -82,6 +94,7 @@ Deno.serve(async (req) => {
       discord_id: meta.provider_id ?? meta.sub ?? null,
       full_name: displayName ?? 'Agent',
       avatar_url: meta.avatar_url ?? null,
+      active: true,
     }).eq('id', userData.user.id)
 
     if (updateErr) {

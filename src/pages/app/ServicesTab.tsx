@@ -3,7 +3,7 @@ import { Play, Pause, Square, RefreshCw } from 'lucide-react'
 import { useAuth } from '@/auth/AuthContext'
 import {
   supabase,
-  ROLE_LABELS,
+  displayRoleLabel,
   STATUS_LABELS,
   type Staff,
   type Unit,
@@ -77,7 +77,7 @@ export function ServicesTab() {
 
   const fetchAll = useCallback(async () => {
     const [{ data: staffData }, { data: unitData }] = await Promise.all([
-      supabase.from('staff').select('*').order('full_name'),
+      supabase.from('staff').select('*').eq('active', true).order('full_name'),
       supabase.from('units').select('*').order('created_at', { ascending: false }),
     ])
     if (staffData) setRoster(staffData)
@@ -468,7 +468,7 @@ export function ServicesTab() {
                   {members.map((s) => (
                     <div key={s.id} className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-[var(--ink)]/70 text-xs font-medium">{s.full_name}</span>
-                      <Badge variant="gray">{ROLE_LABELS[s.role]}</Badge>
+                      {displayRoleLabel(s.role) && <Badge variant="gray">{displayRoleLabel(s.role)}</Badge>}
                       {sousGradeLabel(s.sous_grade_id) && <Badge variant="cyan">{sousGradeLabel(s.sous_grade_id)}</Badge>}
                       {affiliationLabel(s.affiliation_id) && <Badge variant="red">{affiliationLabel(s.affiliation_id)}</Badge>}
                     </div>
@@ -495,7 +495,11 @@ export function ServicesTab() {
               className={cn(
                 'flex items-center gap-3 rounded-xl border border-[var(--ink)]/8 bg-[var(--ink)]/[0.02] px-3.5 py-2.5',
                 member.id === staff.id && 'border-red/30 bg-red/5',
+                member.discord_id && 'cursor-pointer',
               )}
+              onClick={
+                member.discord_id ? () => window.open(`https://discord.com/users/${member.discord_id}`, '_blank', 'noopener') : undefined
+              }
             >
               {member.avatar_url ? (
                 <img src={member.avatar_url} alt="" className="w-9 h-9 rounded-full border border-[var(--ink)]/15" />
@@ -505,9 +509,13 @@ export function ServicesTab() {
               <div className="flex-1 min-w-0">
                 <p className="text-[var(--ink)] text-sm font-semibold truncate">{member.full_name}</p>
                 <p className="text-[var(--ink)]/40 text-xs truncate">
-                  {ROLE_LABELS[member.role]}
-                  {member.unit_id && unitsById.get(member.unit_id) ? ` · ${unitsById.get(member.unit_id)!.name}` : ''}
-                  {member.unit_id && unitsById.get(member.unit_id)?.vehicule ? ` · ${unitsById.get(member.unit_id)!.vehicule}` : ''}
+                  {[
+                    displayRoleLabel(member.role),
+                    member.unit_id ? unitsById.get(member.unit_id)?.name : null,
+                    member.unit_id ? unitsById.get(member.unit_id)?.vehicule : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
                 </p>
                 {member.status !== 'hors_service' && (sousGradeLabel(member.sous_grade_id) || affiliationLabel(member.affiliation_id)) && (
                   <div className="flex flex-wrap gap-1 mt-1">

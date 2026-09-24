@@ -24,10 +24,12 @@ export function AnimatedListItem({
   children,
   className,
   layoutId,
+  onClick,
 }: {
   children: ReactNode
   className?: string
   layoutId?: string
+  onClick?: () => void
 }) {
   return (
     <motion.div
@@ -38,6 +40,7 @@ export function AnimatedListItem({
       whileHover={{ x: 3 }}
       transition={{ type: 'spring', stiffness: 340, damping: 26 }}
       className={className}
+      onClick={onClick}
     >
       {children}
     </motion.div>

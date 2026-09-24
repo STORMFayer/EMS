@@ -52,6 +52,13 @@ export const ROLE_LABELS: Record<StaffRole, string> = {
   membre: 'Membre E.M.S',
 }
 
+// 'membre' is the generic base role granted just by holding the E.M.S. gate
+// role on Discord, before any real hierarchy rank is assigned. It's used to
+// authorize login but must never be shown as a displayed grade.
+export function displayRoleLabel(role: StaffRole): string | null {
+  return role === 'membre' ? null : ROLE_LABELS[role]
+}
+
 export const STATUS_LABELS: Record<DutyStatus, string> = {
   en_service: 'En service',
   en_pause: 'En pause',
@@ -88,6 +95,7 @@ export interface Staff {
   status: DutyStatus
   shift_started_at: string | null
   unit_id: string | null
+  active: boolean
   created_at: string
 }
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { supabase, ROLE_LABELS, STATUS_LABELS, type Staff, type SousGrade, type Affiliation } from '@/lib/supabase'
+import { supabase, displayRoleLabel, STATUS_LABELS, type Staff, type SousGrade, type Affiliation } from '@/lib/supabase'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { AnimatedList, AnimatedListItem } from '@/components/ui/AnimatedList'
@@ -41,7 +41,7 @@ export function UsersSection() {
               <p className="text-[var(--ink)]/40 text-xs">{s.discord_id ?? '—'}</p>
             </div>
             <div className="flex flex-wrap justify-end gap-1.5">
-              <Badge variant="gray">{ROLE_LABELS[s.role]}</Badge>
+              {displayRoleLabel(s.role) && <Badge variant="gray">{displayRoleLabel(s.role)}</Badge>}
               {sousGradeLabel(s.sous_grade_id) && <Badge variant="cyan">{sousGradeLabel(s.sous_grade_id)}</Badge>}
               {affiliationLabel(s.affiliation_id) && <Badge variant="red">{affiliationLabel(s.affiliation_id)}</Badge>}
             </div>
