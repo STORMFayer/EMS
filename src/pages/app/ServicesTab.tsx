@@ -4,6 +4,7 @@ import { useAuth } from '@/auth/AuthContext'
 import {
   supabase,
   displayRoleLabel,
+  staffMatchesEligibility,
   STATUS_LABELS,
   type Staff,
   type Unit,
@@ -77,7 +78,7 @@ export function ServicesTab() {
 
   const fetchAll = useCallback(async () => {
     const [{ data: staffData }, { data: unitData }] = await Promise.all([
-      supabase.from('staff').select('*').eq('active', true).order('full_name'),
+      supabase.from('staff').select('*').eq('active', true).neq('role', 'membre').order('full_name'),
       supabase.from('units').select('*').order('created_at', { ascending: false }),
     ])
     if (staffData) setRoster(staffData)
@@ -389,7 +390,7 @@ export function ServicesTab() {
             <div>
               <p className="text-xs uppercase tracking-[1.5px] text-[var(--ink)]/40 font-semibold mb-1.5">Interventions</p>
               <div className="flex flex-wrap gap-2">
-                {shortcuts.map((s) => (
+                {shortcuts.filter((s) => staffMatchesEligibility(staff, s)).map((s) => (
                   <button
                     key={s.id}
                     type="button"

@@ -20,6 +20,8 @@ export function HomeTiles({ tabs, onSelect }: { tabs: TabKey[]; onSelect: (key: 
       .from('staff')
       .select('id', { count: 'exact', head: true })
       .eq('status', 'en_service')
+      .eq('active', true)
+      .neq('role', 'membre')
       .then(({ count }) => setEnService(count ?? 0))
     supabase
       .from('absences')

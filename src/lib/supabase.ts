@@ -124,6 +124,9 @@ export interface InterventionShortcut {
   id: number
   label: string
   position: number
+  grade: StaffRole | null
+  sous_grade_id: string | null
+  affiliation_id: string | null
 }
 
 export interface Unit {
