@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { X } from 'lucide-react'
 import { useAuth } from '@/auth/AuthContext'
 import { supabase, ABSENCE_STATUS_LABELS, type Absence } from '@/lib/supabase'
 import { Card } from '@/components/ui/Card'
@@ -49,6 +50,11 @@ export function AbsenceTab() {
     await fetchAbsences()
   }
 
+  async function handleCancel(id: number) {
+    await supabase.from('absences').delete().eq('id', id)
+    await fetchAbsences()
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <Card className="p-5">
@@ -86,9 +92,14 @@ export function AbsenceTab() {
                 </p>
                 {a.motif && <p className="text-[var(--ink)]/40 text-xs">{a.motif}</p>}
               </div>
-              <Badge variant={a.status === 'validee' ? 'green' : a.status === 'refusee' ? 'red' : 'amber'}>
-                {ABSENCE_STATUS_LABELS[a.status]}
-              </Badge>
+              <div className="flex items-center gap-2 shrink-0">
+                <Badge variant={a.status === 'validee' ? 'green' : a.status === 'refusee' ? 'red' : 'amber'}>
+                  {ABSENCE_STATUS_LABELS[a.status]}
+                </Badge>
+                <Button size="sm" variant="ghost" onClick={() => handleCancel(a.id)} title="Annuler cette absence">
+                  <X size={13} />
+                </Button>
+              </div>
             </AnimatedListItem>
           ))}
           {absences.length === 0 && <p className="text-[var(--ink)]/30 text-sm text-center py-4">Aucune absence.</p>}

@@ -11,7 +11,7 @@ export function UsersSection() {
 
   const fetchAll = useCallback(async () => {
     const [{ data: s }, { data: sg }, { data: aff }] = await Promise.all([
-      supabase.from('staff').select('*').order('full_name'),
+      supabase.from('staff').select('*').neq('role', 'membre').order('full_name'),
       supabase.from('sous_grades').select('*').order('position'),
       supabase.from('affiliations').select('*').order('position'),
     ])
