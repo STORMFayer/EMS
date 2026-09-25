@@ -468,10 +468,8 @@ export function ServicesTab() {
                 <div className="flex flex-col gap-1">
                   {members.map((s) => (
                     <div key={s.id} className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[var(--ink)]/70 text-xs font-medium">
-                        {s.full_name}
-                        {displayRoleLabel(s.role) && <span className="text-[var(--ink)]/40"> ({displayRoleLabel(s.role)})</span>}
-                      </span>
+                      <span className="text-[var(--ink)]/70 text-xs font-medium">{s.full_name}</span>
+                      {displayRoleLabel(s.role) && <Badge variant="gray">{displayRoleLabel(s.role)}</Badge>}
                       {sousGradeLabel(s.sous_grade_id) && <Badge variant="cyan">{sousGradeLabel(s.sous_grade_id)}</Badge>}
                       {affiliationLabel(s.affiliation_id) && <Badge variant="red">{affiliationLabel(s.affiliation_id)}</Badge>}
                     </div>
@@ -510,12 +508,10 @@ export function ServicesTab() {
                 <div className="w-9 h-9 rounded-full bg-[var(--ink)]/10 border border-[var(--ink)]/15" />
               )}
               <div className="flex-1 min-w-0">
-                <p className="text-[var(--ink)] text-sm font-semibold truncate">
-                  {member.full_name}
-                  {displayRoleLabel(member.role) && <span className="text-[var(--ink)]/40 font-normal"> ({displayRoleLabel(member.role)})</span>}
-                </p>
+                <p className="text-[var(--ink)] text-sm font-semibold truncate">{member.full_name}</p>
                 <p className="text-[var(--ink)]/40 text-xs truncate">
                   {[
+                    displayRoleLabel(member.role),
                     member.unit_id ? unitsById.get(member.unit_id)?.name : null,
                     member.unit_id ? unitsById.get(member.unit_id)?.vehicule : null,
                   ]
