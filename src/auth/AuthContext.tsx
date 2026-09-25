@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
-import { supabase, type Staff } from '@/lib/supabase'
+import { supabase, mapStaffRow, STAFF_SELECT_WITH_GRADES, type Staff } from '@/lib/supabase'
 
 export type AuthDenialReason = 'not_member' | 'no_gate_role' | 'discord_error' | 'server_error' | 'missing_token'
 
@@ -39,8 +39,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loadStaff = useCallback(async (userId: string) => {
     try {
-      const { data } = await withTimeout(supabase.from('staff').select('*').eq('id', userId).single())
-      setStaff(data)
+      const { data } = await withTimeout(supabase.from('staff').select(STAFF_SELECT_WITH_GRADES).eq('id', userId).single())
+      setStaff(data ? mapStaffRow(data) : null)
     } catch {
       setStaff(null)
     }

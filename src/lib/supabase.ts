@@ -90,13 +90,32 @@ export interface Staff {
   full_name: string
   avatar_url: string | null
   role: StaffRole
-  sous_grade_id: string | null
-  affiliation_id: string | null
+  sous_grade_ids: string[]
+  affiliation_ids: string[]
   status: DutyStatus
   shift_started_at: string | null
   unit_id: string | null
   active: boolean
   created_at: string
+}
+
+// A staff member can hold several sous-grades and affiliations at once (e.g.
+// Recruteur and Formateur together), so they're stored in join tables and
+// joined in via this select string, then flattened by mapStaffRow.
+export const STAFF_SELECT_WITH_GRADES = '*, staff_sous_grades(sous_grade_id), staff_affiliations(affiliation_id)'
+
+export function mapStaffRow(
+  row: Omit<Staff, 'sous_grade_ids' | 'affiliation_ids'> & {
+    staff_sous_grades?: { sous_grade_id: string }[] | null
+    staff_affiliations?: { affiliation_id: string }[] | null
+  },
+): Staff {
+  const { staff_sous_grades, staff_affiliations, ...rest } = row
+  return {
+    ...rest,
+    sous_grade_ids: (staff_sous_grades ?? []).map((x) => x.sous_grade_id),
+    affiliation_ids: (staff_affiliations ?? []).map((x) => x.affiliation_id),
+  }
 }
 
 export interface SousGrade {
@@ -197,12 +216,12 @@ export interface PrestationType {
 }
 
 export function staffMatchesEligibility(
-  staff: Pick<Staff, 'role' | 'sous_grade_id' | 'affiliation_id'>,
+  staff: Pick<Staff, 'role' | 'sous_grade_ids' | 'affiliation_ids'>,
   restriction: { grade: StaffRole | null; sous_grade_id: string | null; affiliation_id: string | null },
 ) {
   if (restriction.grade && staff.role !== restriction.grade) return false
-  if (restriction.sous_grade_id && staff.sous_grade_id !== restriction.sous_grade_id) return false
-  if (restriction.affiliation_id && staff.affiliation_id !== restriction.affiliation_id) return false
+  if (restriction.sous_grade_id && !staff.sous_grade_ids.includes(restriction.sous_grade_id)) return false
+  if (restriction.affiliation_id && !staff.affiliation_ids.includes(restriction.affiliation_id)) return false
   return true
 }
 

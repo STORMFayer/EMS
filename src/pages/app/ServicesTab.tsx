@@ -5,6 +5,8 @@ import {
   supabase,
   displayRoleLabel,
   staffMatchesEligibility,
+  mapStaffRow,
+  STAFF_SELECT_WITH_GRADES,
   STATUS_LABELS,
   type Staff,
   type Unit,
@@ -78,10 +80,10 @@ export function ServicesTab() {
 
   const fetchAll = useCallback(async () => {
     const [{ data: staffData }, { data: unitData }] = await Promise.all([
-      supabase.from('staff').select('*').eq('active', true).neq('role', 'membre').order('full_name'),
+      supabase.from('staff').select(STAFF_SELECT_WITH_GRADES).eq('active', true).neq('role', 'membre').order('full_name'),
       supabase.from('units').select('*').order('created_at', { ascending: false }),
     ])
-    if (staffData) setRoster(staffData)
+    if (staffData) setRoster(staffData.map(mapStaffRow))
     if (unitData) setUnits(unitData)
   }, [])
 
@@ -470,8 +472,8 @@ export function ServicesTab() {
                     <div key={s.id} className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-[var(--ink)]/70 text-xs font-medium">{s.full_name}</span>
                       {displayRoleLabel(s.role) && <Badge variant="gray">{displayRoleLabel(s.role)}</Badge>}
-                      {sousGradeLabel(s.sous_grade_id) && <Badge variant="cyan">{sousGradeLabel(s.sous_grade_id)}</Badge>}
-                      {affiliationLabel(s.affiliation_id) && <Badge variant="red">{affiliationLabel(s.affiliation_id)}</Badge>}
+                      {s.sous_grade_ids.map((id) => sousGradeLabel(id) && <Badge key={id} variant="cyan">{sousGradeLabel(id)}</Badge>)}
+                      {s.affiliation_ids.map((id) => affiliationLabel(id) && <Badge key={id} variant="red">{affiliationLabel(id)}</Badge>)}
                     </div>
                   ))}
                 </div>
@@ -518,10 +520,10 @@ export function ServicesTab() {
                     .filter(Boolean)
                     .join(' · ')}
                 </p>
-                {member.status !== 'hors_service' && (sousGradeLabel(member.sous_grade_id) || affiliationLabel(member.affiliation_id)) && (
+                {member.status !== 'hors_service' && (member.sous_grade_ids.length > 0 || member.affiliation_ids.length > 0) && (
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {sousGradeLabel(member.sous_grade_id) && <Badge variant="cyan">{sousGradeLabel(member.sous_grade_id)}</Badge>}
-                    {affiliationLabel(member.affiliation_id) && <Badge variant="red">{affiliationLabel(member.affiliation_id)}</Badge>}
+                    {member.sous_grade_ids.map((id) => sousGradeLabel(id) && <Badge key={id} variant="cyan">{sousGradeLabel(id)}</Badge>)}
+                    {member.affiliation_ids.map((id) => affiliationLabel(id) && <Badge key={id} variant="red">{affiliationLabel(id)}</Badge>)}
                   </div>
                 )}
                 {member.unit_id && unitsById.get(member.unit_id)?.commentaire && (
