@@ -3,6 +3,7 @@ import {
   supabase,
   displayRoleLabel,
   mapStaffRow,
+  shortLabel,
   STAFF_SELECT_WITH_GRADES,
   STATUS_LABELS,
   type Staff,
@@ -114,7 +115,7 @@ export function UsersSection() {
                         : 'border-[var(--ink)]/10 bg-[var(--ink)]/[0.03] text-[var(--ink)]/50 hover:text-[var(--ink)]',
                     )}
                   >
-                    {sg.label}
+                    {shortLabel(sg.label)}
                   </button>
                 )
               })}
@@ -134,7 +135,7 @@ export function UsersSection() {
                         : 'border-[var(--ink)]/10 bg-[var(--ink)]/[0.03] text-[var(--ink)]/50 hover:text-[var(--ink)]',
                     )}
                   >
-                    {a.label}
+                    {shortLabel(a.label)}
                   </button>
                 )
               })}

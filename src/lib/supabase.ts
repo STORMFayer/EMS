@@ -124,6 +124,13 @@ export interface SousGrade {
   position: number
 }
 
+// Sous-grade/affiliation labels are stored as "XX · Full description" so the
+// meaning is documented in the DB, but the UI only ever shows the short code
+// (e.g. "FU") — space is tight in badges/chips and the long form is noise.
+export function shortLabel(label: string) {
+  return label.split(' · ')[0]
+}
+
 export interface Affiliation {
   id: string
   label: string

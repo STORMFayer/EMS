@@ -1,4 +1,4 @@
-import { ROLE_LABELS, type StaffRole, type SousGrade, type Affiliation } from '@/lib/supabase'
+import { ROLE_LABELS, shortLabel, type StaffRole, type SousGrade, type Affiliation } from '@/lib/supabase'
 import { Select } from '@/components/ui/Select'
 import { Field } from '@/components/ui/Field'
 
@@ -43,7 +43,7 @@ export function EligibilitySelector({
           <option value="">— tous —</option>
           {sousGrades.map((sg) => (
             <option key={sg.id} value={sg.id}>
-              {sg.label}
+              {shortLabel(sg.label)}
             </option>
           ))}
         </Select>
@@ -53,7 +53,7 @@ export function EligibilitySelector({
           <option value="">— toutes —</option>
           {availableAffiliations.map((a) => (
             <option key={a.id} value={a.id}>
-              {a.label}
+              {shortLabel(a.label)}
             </option>
           ))}
         </Select>

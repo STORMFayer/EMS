@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Trash2 } from 'lucide-react'
-import { supabase, ROLE_LABELS, type Vehicle, type SousGrade, type Affiliation } from '@/lib/supabase'
+import { supabase, ROLE_LABELS, shortLabel, type Vehicle, type SousGrade, type Affiliation } from '@/lib/supabase'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -48,8 +48,14 @@ export function VehiclesSection() {
     fetchAll()
   }
 
-  const sousGradeLabel = (id: string | null) => sousGrades.find((sg) => sg.id === id)?.label
-  const affiliationLabel = (id: string | null) => affiliations.find((a) => a.id === id)?.label
+  const sousGradeLabel = (id: string | null) => {
+    const l = sousGrades.find((sg) => sg.id === id)?.label
+    return l ? shortLabel(l) : undefined
+  }
+  const affiliationLabel = (id: string | null) => {
+    const l = affiliations.find((a) => a.id === id)?.label
+    return l ? shortLabel(l) : undefined
+  }
 
   return (
     <Card className="p-5">

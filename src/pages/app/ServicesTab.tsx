@@ -6,6 +6,7 @@ import {
   displayRoleLabel,
   staffMatchesEligibility,
   mapStaffRow,
+  shortLabel,
   STAFF_SELECT_WITH_GRADES,
   STATUS_LABELS,
   type Staff,
@@ -75,8 +76,14 @@ export function ServicesTab() {
 
   const [sousGrades, setSousGrades] = useState<SousGrade[]>([])
   const [affiliations, setAffiliations] = useState<Affiliation[]>([])
-  const sousGradeLabel = (id: string | null) => sousGrades.find((sg) => sg.id === id)?.label
-  const affiliationLabel = (id: string | null) => affiliations.find((a) => a.id === id)?.label
+  const sousGradeLabel = (id: string | null) => {
+    const l = sousGrades.find((sg) => sg.id === id)?.label
+    return l ? shortLabel(l) : undefined
+  }
+  const affiliationLabel = (id: string | null) => {
+    const l = affiliations.find((a) => a.id === id)?.label
+    return l ? shortLabel(l) : undefined
+  }
 
   const fetchAll = useCallback(async () => {
     const [{ data: staffData }, { data: unitData }] = await Promise.all([
