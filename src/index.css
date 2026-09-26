@@ -45,6 +45,7 @@
   --tile-rdv: #1f8fce;
   --tile-archive: #8b6f47;
   --tile-vehicles: #3a8f7a;
+  --tile-hierarchy: #9c5fc9;
 }
 
 :root[data-theme="light"] {

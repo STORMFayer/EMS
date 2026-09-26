@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/Input'
 import { EligibilitySelector, type Eligibility } from '@/components/ui/EligibilitySelector'
 import { AnimatedList, AnimatedListItem } from '@/components/ui/AnimatedList'
 
-const EMPTY: Eligibility = { grade: '', sous_grade_id: '', affiliation_id: '' }
+const EMPTY: Eligibility = { grade: [], sous_grade_id: '', affiliation_id: '' }
 
 function uniqueSlug(label: string, existing: string[]) {
   const base = slugify(label) || 'item'
@@ -45,7 +45,7 @@ export function TarifsSection() {
   }, [fetchAll])
 
   function eligOf(t: PrestationType): Eligibility {
-    return eligEdits[t.id] ?? { grade: t.grade ?? '', sous_grade_id: t.sous_grade_id ?? '', affiliation_id: t.affiliation_id ?? '' }
+    return eligEdits[t.id] ?? { grade: t.grade ?? [], sous_grade_id: t.sous_grade_id ?? '', affiliation_id: t.affiliation_id ?? '' }
   }
 
   async function saveTarif(id: string) {
@@ -58,7 +58,7 @@ export function TarifsSection() {
     if (tarifPublic !== undefined) patch.tarif_public = tarifPublic
     if (label !== undefined) patch.label = label
     if (elig !== undefined) {
-      patch.grade = elig.grade || null
+      patch.grade = elig.grade.length > 0 ? elig.grade : null
       patch.sous_grade_id = elig.sous_grade_id || null
       patch.affiliation_id = elig.affiliation_id || null
     }
@@ -95,7 +95,7 @@ export function TarifsSection() {
       label: newTypeLabel.trim(),
       tarif: newTypeTarif,
       tarif_public: newTypeTarifPublic || null,
-      grade: newElig.grade || null,
+      grade: newElig.grade.length > 0 ? newElig.grade : null,
       sous_grade_id: newElig.sous_grade_id || null,
       affiliation_id: newElig.affiliation_id || null,
     })

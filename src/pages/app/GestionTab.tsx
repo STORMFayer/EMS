@@ -16,6 +16,7 @@ import { ArchiveSection } from './gestion/ArchiveSection'
 import { RdvSection } from './gestion/RdvSection'
 import { VehiclesSection } from './gestion/VehiclesSection'
 import { HistoriqueSection } from './gestion/HistoriqueSection'
+import { HierarchySection } from './gestion/HierarchySection'
 
 const SECTION_CONTENT: Record<GestionKey, ReactNode> = {
   users: <UsersSection />,
@@ -29,6 +30,7 @@ const SECTION_CONTENT: Record<GestionKey, ReactNode> = {
   rdv: <RdvSection />,
   vehicles: <VehiclesSection />,
   historique: <HistoriqueSection />,
+  hierarchy: <HierarchySection />,
 }
 
 const VIEW_STORAGE_KEY = 'ems-gestion-view'

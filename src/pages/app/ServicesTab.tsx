@@ -17,6 +17,7 @@ import {
   type InterventionShortcut,
   type SousGrade,
   type Affiliation,
+  type Vehicle,
 } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -76,6 +77,7 @@ export function ServicesTab() {
 
   const [sousGrades, setSousGrades] = useState<SousGrade[]>([])
   const [affiliations, setAffiliations] = useState<Affiliation[]>([])
+  const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const sousGradeLabel = (id: string | null) => {
     const l = sousGrades.find((sg) => sg.id === id)?.label
     return l ? shortLabel(l) : undefined
@@ -106,6 +108,9 @@ export function ServicesTab() {
     })
     supabase.from('affiliations').select('*').order('position').then(({ data }) => {
       if (data) setAffiliations(data)
+    })
+    supabase.from('vehicles').select('*').order('name').then(({ data }) => {
+      if (data) setVehicles(data)
     })
   }, [])
 
@@ -317,6 +322,8 @@ export function ServicesTab() {
 
   if (!staff) return null
 
+  const eligibleVehicles = vehicles.filter((v) => staffMatchesEligibility(staff, v))
+
   return (
     <div className="flex flex-col gap-6">
       <Card className="p-5">
@@ -364,14 +371,20 @@ export function ServicesTab() {
           <div className="mb-4 flex flex-col gap-4">
             <div className="grid sm:grid-cols-2 gap-4">
               <Field label="Véhicule">
-                <Input
-                  placeholder="ex: VAPID JIY715"
+                <Select
                   value={vehicule}
                   onChange={(e) => {
                     setVehicule(e.target.value)
                     setDetailsDirty(true)
                   }}
-                />
+                >
+                  <option value="">— Aucun —</option>
+                  {eligibleVehicles.map((v) => (
+                    <option key={v.id} value={v.name}>
+                      {v.name}
+                    </option>
+                  ))}
+                </Select>
               </Field>
               <Field label="Défibrillateur">
                 <Select

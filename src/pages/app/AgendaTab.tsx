@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Trash2 } from 'lucide-react'
 import { useAuth } from '@/auth/AuthContext'
-import { supabase, isDirection, type Appointment, type AppointmentTypeRow, type Staff } from '@/lib/supabase'
+import { supabase, isDirection, staffMatchesEligibility, type Appointment, type AppointmentTypeRow, type Staff } from '@/lib/supabase'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
@@ -35,9 +35,10 @@ export function AgendaTab() {
     if (s) setStaffList(s)
     if (t) {
       setTypes(t)
-      setType((current) => current || t[0]?.id || '')
+      const eligible = staff ? t.filter((ty) => staffMatchesEligibility(staff, ty)) : t
+      setType((current) => current || eligible[0]?.id || '')
     }
-  }, [])
+  }, [staff])
 
   useEffect(() => {
     fetchAll()
@@ -82,6 +83,7 @@ export function AgendaTab() {
   const staffById = new Map(staffList.map((s) => [s.id, s]))
   const typeLabel = (id: string) => types.find((t) => t.id === id)?.label ?? id
   const upcoming = appointments.filter((a) => new Date(a.scheduled_at).getTime() >= Date.now() - 3600_000)
+  const eligibleTypes = staff ? types.filter((t) => staffMatchesEligibility(staff, t)) : types
 
   return (
     <div className="flex flex-col gap-6">
@@ -91,7 +93,7 @@ export function AgendaTab() {
         <div className="grid sm:grid-cols-2 gap-4 mb-4">
           <Field label="Type">
             <Select value={type} onChange={(e) => setType(e.target.value)}>
-              {types.map((t) => (
+              {eligibleTypes.map((t) => (
                 <option key={t.id} value={t.id}>
                   {t.label}
                 </option>

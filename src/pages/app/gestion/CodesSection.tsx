@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/Input'
 import { EligibilitySelector, type Eligibility } from '@/components/ui/EligibilitySelector'
 import { AnimatedList, AnimatedListItem } from '@/components/ui/AnimatedList'
 
-const EMPTY_ELIG: Eligibility = { grade: '', sous_grade_id: '', affiliation_id: '' }
+const EMPTY_ELIG: Eligibility = { grade: [], sous_grade_id: '', affiliation_id: '' }
 
 export function CodesSection() {
   const [codes, setCodes] = useState<EmergencyCodeRow[]>([])
@@ -36,7 +36,7 @@ export function CodesSection() {
   }, [])
 
   function shortcutEligOf(s: InterventionShortcut): Eligibility {
-    return shortcutEligEdits[s.id] ?? { grade: s.grade ?? '', sous_grade_id: s.sous_grade_id ?? '', affiliation_id: s.affiliation_id ?? '' }
+    return shortcutEligEdits[s.id] ?? { grade: s.grade ?? [], sous_grade_id: s.sous_grade_id ?? '', affiliation_id: s.affiliation_id ?? '' }
   }
 
   useEffect(() => {
@@ -74,7 +74,7 @@ export function CodesSection() {
     const patch: Record<string, unknown> = {}
     if (label !== undefined) patch.label = label
     if (elig !== undefined) {
-      patch.grade = elig.grade || null
+      patch.grade = elig.grade.length > 0 ? elig.grade : null
       patch.sous_grade_id = elig.sous_grade_id || null
       patch.affiliation_id = elig.affiliation_id || null
     }
@@ -103,7 +103,7 @@ export function CodesSection() {
     await supabase.from('intervention_shortcuts').insert({
       label: newShortcut.trim(),
       position: shortcuts.length,
-      grade: newShortcutElig.grade || null,
+      grade: newShortcutElig.grade.length > 0 ? newShortcutElig.grade : null,
       sous_grade_id: newShortcutElig.sous_grade_id || null,
       affiliation_id: newShortcutElig.affiliation_id || null,
     })

@@ -67,7 +67,10 @@ export const STATUS_LABELS: Record<DutyStatus, string> = {
 
 export const DISCORD_INVITE_URL = 'https://discord.gg/BqPNg7Ngt'
 
-export const DIRECTION_ROLES: StaffRole[] = ['directeur', 'directeur_adjoint', 'directeur_centre']
+// Full Gestion access. Note this deliberately excludes directeur_centre,
+// which (along with the chef de pôle/service/chirurgie roles) only gets the
+// limited subset defined by GESTION_LIMITED_ROLES in gestionTiles.ts.
+export const DIRECTION_ROLES: StaffRole[] = ['directeur', 'directeur_adjoint']
 
 export function isDirection(role: StaffRole | undefined | null) {
   return !!role && DIRECTION_ROLES.includes(role)
@@ -150,7 +153,7 @@ export interface InterventionShortcut {
   id: number
   label: string
   position: number
-  grade: StaffRole | null
+  grade: StaffRole[] | null
   sous_grade_id: string | null
   affiliation_id: string | null
 }
@@ -216,7 +219,7 @@ export interface PrestationType {
   label: string
   tarif: number
   tarif_public: number | null
-  grade: StaffRole | null
+  grade: StaffRole[] | null
   sous_grade_id: string | null
   affiliation_id: string | null
   created_at: string
@@ -224,9 +227,9 @@ export interface PrestationType {
 
 export function staffMatchesEligibility(
   staff: Pick<Staff, 'role' | 'sous_grade_ids' | 'affiliation_ids'>,
-  restriction: { grade: StaffRole | null; sous_grade_id: string | null; affiliation_id: string | null },
+  restriction: { grade: StaffRole[] | null; sous_grade_id: string | null; affiliation_id: string | null },
 ) {
-  if (restriction.grade && staff.role !== restriction.grade) return false
+  if (restriction.grade && restriction.grade.length > 0 && !restriction.grade.includes(staff.role)) return false
   if (restriction.sous_grade_id && !staff.sous_grade_ids.includes(restriction.sous_grade_id)) return false
   if (restriction.affiliation_id && !staff.affiliation_ids.includes(restriction.affiliation_id)) return false
   return true
@@ -259,6 +262,9 @@ export interface AppointmentTypeRow {
   id: string
   label: string
   position: number
+  grade: StaffRole[] | null
+  sous_grade_id: string | null
+  affiliation_id: string | null
 }
 
 export interface Appointment {
@@ -273,7 +279,7 @@ export interface Appointment {
 export interface Vehicle {
   id: number
   name: string
-  grade: StaffRole | null
+  grade: StaffRole[] | null
   sous_grade_id: string | null
   affiliation_id: string | null
   created_at: string
